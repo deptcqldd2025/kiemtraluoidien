@@ -2,149 +2,227 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VDC Safety - Hệ Thống Kiểm Tra Định Kỳ Lưới Điện</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VDC Field App - Kiểm Tra Lưới Điện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
-        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 12px; }
-        .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 500; }
-        .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: none; }
-        .signature-pad { border: 2px dashed #ccc; background-color: #fff; border-radius: 8px; cursor: crosshair; }
-        .badge-offline { background-color: #ff9800; color: white; }
-        .badge-online { background-color: #4caf50; color: white; }
+        /* Tối ưu hóa toàn bộ không gian hiển thị trên màn hình điện thoại dưới ánh sáng mặt trời */
+        body { 
+            background-color: #f1f3f5; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .container-mobile { max-width: 500px; margin: 0 auto; padding: 12px; }
+        .card-field { 
+            border: none; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+            margin-bottom: 16px;
+            background: #ffffff;
+        }
+        
+        /* Định dạng lại Tab điều hướng thành các nút bấm to góc bo tròn dễ chạm */
+        .nav-field .nav-item { flex: 1; text-align: center; }
+        .nav-field .nav-link { 
+            border: none !important; 
+            color: #6c757d; 
+            font-weight: bold; 
+            font-size: 13px;
+            padding: 12px 4px;
+            border-radius: 12px;
+        }
+        .nav-field .nav-link.active { 
+            color: #ffffff !important; 
+            background-color: #0d6efd !important; 
+            box-shadow: 0 4px 8px rgba(13,110,253,0.3);
+        }
+
+        /* Nút chọn vị trí Trụ biến thành khối vuông khổng lồ cực kỳ dễ chạm bằng ngón cái */
+        .tower-btn-check { display: none; }
+        .tower-label-box {
+            display: block;
+            background-color: #ffffff;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 14px 4px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #212529;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .tower-btn-check:checked + .tower-label-box {
+            background-color: #e8f0fe;
+            border-color: #0d6efd;
+            color: #0d6efd;
+            transform: scale(0.95);
+            box-shadow: inset 0 0 0 2px #0d6efd;
+        }
+
+        /* Khung ký cảm ứng toàn màn hình chiều ngang di động */
+        .signature-container {
+            position: relative;
+            width: 100%;
+            background: #ffffff;
+            border: 2px dashed #adb5bd;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .signature-pad { display: block; width: 100%; height: 160px; background-color: #ffffff; }
+        
+        /* Ép các ô nhập liệu dạng Form hiển thị to, rõ nét */
+        .form-control, .form-select {
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+        }
+        .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(13,110,253,0.15); }
+        
+        /* Trạng thái mạng bo tròn dính cố định góc trên */
+        .badge-net { padding: 6px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        .badge-offline { background-color: #fd7e14; color: white; }
+        .badge-online { background-color: #198754; color: white; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-primary shadow-sm sticky-top">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-shield-halved me-2"></i>VDC-CRM-Southern</span>
+    <nav class="navbar navbar-dark bg-dark shadow-sm sticky-top px-2">
+        <div class="w-100 d-flex justify-content-between align-items-center">
+            <span class="navbar-brand mb-0 h1 fw-bold text-truncate small" style="max-width: 60%;"><i class="fa-solid fa-hard-hat text-warning me-1"></i>Mr. An Toàn - VDC</span>
             <div class="d-flex align-items-center">
-                <span id="networkStatus" class="badge badge-online me-2"><i class="fa-solid fa-wifi me-1"></i>Online</span>
-                <span id="userDisplay" class="text-white small me-3 d-none"></span>
-                <button id="btnLogout" class="btn btn-sm btn-outline-light d-none" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+                <span id="networkStatus" class="badge badge-online badge-net me-1"><i class="fa-solid fa-wifi me-1"></i>Online</span>
+                <button id="btnLogout" class="btn btn-sm btn-outline-danger border-0 d-none" onclick="logout()"><i class="fa-solid fa-power-off fs-5"></i></button>
             </div>
         </div>
     </nav>
 
-    <div class="container my-4" style="max-width: 800px;">
+    <div class="container-mobile">
         
-        <div id="loginSection" class="card p-4 text-center">
-            <h4 class="mb-4">ĐĂNG NHẬP HỆ THỐNG</h4>
+        <div id="loginSection" class="card card-field p-4 text-center mt-3">
+            <div class="mb-3 text-primary"><i class="fa-solid fa-shield-halved fa-3x"></i></div>
+            <h5 class="fw-bold mb-4">HỆ THỐNG KIỂM TRA ĐỊNH KỲ</h5>
             <div class="mb-3 text-start">
-                <label class="form-label">Email tài khoản</label>
-                <input type="email" id="loginEmail" class="form-control" placeholder="example@vdc.com" required>
+                <div class="form-floating">
+                    <input type="email" id="loginEmail" class="form-control" id="floatingInput" placeholder="name@example.com">
+                    <label for="floatingInput">Email tài khoản</label>
+                </div>
             </div>
             <div class="mb-4 text-start">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                <div class="form-floating">
+                    <input type="password" id="loginPassword" class="form-control" id="floatingPassword" placeholder="Password">
+                    <label for="floatingPassword">Mật khẩu</label>
+                </div>
             </div>
-            <button class="btn btn-primary w-100 py-2" onclick="login()"><i class="fa-solid fa-lock-open me-2"></i>Đăng Nhập</button>
+            <button class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()"><i class="fa-solid fa-right-to-bracket me-2"></i>ĐĂNG NHẬP NGAY</button>
         </div>
 
         <div id="mainSection" class="d-none">
             
-            <ul class="nav nav-tabs mb-3 bg-white p-2 rounded card" id="formTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="init-tab" data-bs-toggle="tab" data-bs-target="#initTab" type="button"><i class="fa-solid fa-file-invoice me-1"></i>1. Khởi Tạo</button>
+            <ul class="nav nav-pills nav-field p-1 bg-white rounded-3 mb-3 border" id="formTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link w-100 active" id="init-tab" data-bs-toggle="tab" data-bs-target="#initTab" type="button"><i class="fa-solid fa-file-signature d-block mb-1 fs-5"></i>1. Khởi Tạo</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="check-tab" data-bs-toggle="tab" data-bs-target="#checkTab" type="button"><i class="fa-solid fa-list-check me-1"></i>2. Nhật Ký Lỗi</button>
+                <li class="nav-item">
+                    <button class="nav-link w-100" id="check-tab" data-bs-toggle="tab" data-bs-target="#checkTab" type="button"><i class="fa-solid fa-house-signal d-block mb-1 fs-5"></i>2. Bắt Lỗi</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="submit-tab" data-bs-toggle="tab" data-bs-target="#submitTab" type="button"><i class="fa-solid fa-signature me-1"></i>3. Hoàn Tất</button>
+                <li class="nav-item">
+                    <button class="nav-link w-100" id="submit-tab" data-bs-toggle="tab" data-bs-target="#submitTab" type="button"><i class="fa-solid fa-cloud-check d-block mb-1 fs-5"></i>3. Khóa Phiếu</button>
                 </li>
             </ul>
 
             <div class="tab-content">
                 
                 <div class="tab-pane fade show active" id="initTab">
-                    <div class="card p-4">
-                        <h5 class="card-title border-bottom pb-2 text-primary">I. THÔNG TIN HÀNH CHÍNH</h5>
+                    <div class="card card-field p-3">
+                        <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-folder-open me-1"></i> KHAI BÁO HÀNH CHÍNH SƠ BỘ</div>
+                        
                         <div class="mb-3">
-                            <label class="form-label">Chọn Đường Dây Cần Kiểm Tra (PMIS)</label>
-                            <select id="selectDuongDay" class="form-select" onchange="loadTowersForLine()">
-                                <option value="">-- Đang tải danh sách tuyến --</option>
+                            <label class="form-label small fw-bold text-secondary">Tên tuyến đường dây cần kiểm tra</label>
+                            <select id="selectDuongDay" class="form-select text-truncate" onchange="loadTowersForLine()">
+                                <option value="">-- Đang nạp nguồn PMIS --</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Đường Dây Chung Trụ</label>
-                            <input type="text" id="txtChungTru" class="form-control" placeholder="Tự động nhận diện tuyến chung trụ" readonly>
+                            <label class="form-label small fw-bold text-secondary">Tuyến đi chung trụ</label>
+                            <input type="text" id="txtChungTru" class="form-control bg-light" placeholder="Hệ thống tự nhận diện" readonly>
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Chỉ Huy Trực Tiếp</label>
-                                <input type="text" id="txtChiHuy" class="form-control" placeholder="Nhập tên người chỉ huy">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Thành Viên Nhóm Công Nhân</label>
-                                <input type="text" id="txtCongNhan" class="form-control" placeholder="Nguyễn Văn A, Trần Văn B...">
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Chỉ Huy Trực Tiếp</label>
+                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Họ tên Chỉ Huy Trực Tiếp">
                         </div>
-                        <button class="btn btn-success w-100 py-2" onclick="startInspection()"><i class="fa-solid fa-play me-2"></i>BẮT ĐẦU TUẦN TRA ĐƯỜNG DÂY</button>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary">Danh sách anh em công nhân đi cùng</label>
+                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Nguyễn Minh Hải, Trần Quốc Đạt...">
+                        </div>
+                        <button class="btn btn-success w-100 py-3 fw-bold rounded-3 fs-6 shadow-sm" onclick="startInspection()"><i class="fa-solid fa-shoe-prints me-2"></i>BẮT ĐẦU ĐI DỌC TUYẾN</button>
                     </div>
                 </div>
 
                 <div class="tab-pane fade" id="checkTab">
-                    <div class="card p-4">
+                    <div class="card card-field p-3">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                            <h5 class="card-title text-primary mb-0">II. THỰC ĐỊA TUYẾN DÂY</h5>
-                            <span id="inspectingLine" class="badge bg-secondary">Chưa chọn tuyến</span>
+                            <span class="text-primary fw-bold small"><i class="fa-solid fa-compass me-1"></i> NHẬT KÝ KIỂM TRA HIỆN TRƯỜNG</span>
+                            <span id="inspectingLine" class="badge bg-secondary p-2 text-truncate" style="max-width: 150px;">Chưa chọn tuyến</span>
                         </div>
 
-                        <div class="card p-3 bg-light border mb-3">
-                            <h6><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Khai báo tồn tại phát hiện:</h6>
-                            <div class="mb-2">
-                                <label class="form-label small fw-bold">1. Chọn (hoặc khoanh vùng) vị trí Trụ bị lỗi:</label>
-                                <div id="towerContainer" class="row gx-2 gy-2" style="max-height: 150px; overflow-y: auto;">
-                                    <div class="text-muted small ps-2">Hãy nhấn bắt đầu tuần tra ở Tab 1 để tải danh sách vị trí trụ điện.</div>
-                                </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-danger"><i class="fa-solid fa-bullseye me-1"></i> Bước 1: Chạm chọn các Trụ phát hiện bất thường:</label>
+                            <div id="towerContainer" class="row gx-2 gy-2 p-2 rounded-3 bg-light border" style="max-height: 180px; overflow-y: auto;">
+                                <div class="text-muted text-center py-3 small">Vui lòng hoàn thành Tab 1 để gọi danh sách trụ.</div>
                             </div>
-                            <div class="row g-2 mb-2">
-                                <div class="col-sm-6">
-                                    <label class="form-label small fw-bold">2. Hạng mục lỗi con:</label>
-                                    <select id="selectMaLoi" class="form-select form-select-sm" onchange="autoFillErrorDetails()">
-                                        <option value="3d">3d./ Biển báo số trụ/tên tuyến mờ, bong tróc</option>
-                                        <option value="4g">4g./ Sơn trắng đỏ cảnh báo giao thông bị mờ</option>
-                                        <option value="6c">6c./ Cách điện bị bể, vỡ bát sứ pha</option>
-                                        <option value="1a">1a./ Cây trong hành lang không đảm bảo khoảng cách</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="form-label small fw-bold">3. Phân loại lỗi xử lý:</label>
-                                    <select id="selectPhanLoai" class="form-select form-select-sm">
-                                        <option value="TIẾP TỤC THEO DÕI">TIẾP TỤC THEO DÕI</option>
-                                        <option value="XỬ LÝ KHI CÁT ĐIỆN">XỬ LÝ KHI CẮT ĐIỆN</option>
-                                        <option value="XỬ LÝ KHI KIỂM TRA">XỬ LÝ KHI KIỂM TRA</option>
-                                    </select>
-                                </div>
+                        </div>
+
+                        <div class="p-3 border rounded-3 bg-light mb-3">
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-secondary">Bước 2: Chọn nhóm tồn tại phát hiện</label>
+                                <select id="selectMaLoi" class="form-select form-select-sm" onchange="autoFillErrorDetails()">
+                                    <option value="3d">3d./ Biển số trụ/tên tuyến bị mờ, bong tróc</option>
+                                    <option value="4g">4g./ Sơn trắng đỏ cảnh báo giao thông bị mờ</option>
+                                    <option value="6c">6c./ Cách điện bị bể, vỡ bát sứ pha</option>
+                                    <option value="1a">1a./ Cây trong hành lang không đảm bảo an toàn</option>
+                                </select>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small fw-bold">4. Mô tả hiện trạng thực tế:</label>
+                                <label class="form-label small fw-bold text-secondary">Mô tả hiện trạng chi tiết</label>
                                 <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" value="Biển số trụ không đúng thực tế, mờ, biển tên tuyến mờ">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">5. Biện pháp đề xuất:</label>
-                                <input type="text" id="txtBienPhap" class="form-control form-control-sm" value="Điều chỉnh lại số trụ, Sơn, Thay thế biển số trụ">
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-secondary">Biện pháp xử lý & Phân loại</label>
+                                <div class="row g-2">
+                                    <div class="col-7">
+                                        <input type="text" id="txtBienPhap" class="form-control form-control-sm" value="Điều chỉnh lại số trụ, Sơn, Thay thế biển số trụ">
+                                    </div>
+                                    <div class="col-5">
+                                        <select id="selectPhanLoai" class="form-select form-select-sm text-danger fw-bold" style="font-size: 11px; padding: 8px 4px;">
+                                            <option value="TIẾP TỤC THEO DÕI">THEO DÕI</option>
+                                            <option value="XỬ LÝ KHI CÁT ĐIỆN">CẮT ĐIỆN</option>
+                                            <option value="XỬ LÝ KHI KIỂM TRA">TẠI CHỖ</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="btn btn-sm btn-warning w-100" onclick="addErrorToList()"><i class="fa-solid fa-plus me-1"></i> Ghi nhận lỗi vào bộ nhớ máy (Offline)</button>
+                            <button class="btn btn-warning w-100 fw-bold mt-2 py-2" onclick="addErrorToList()"><i class="fa-solid fa-plus-circle me-1"></i> Ghi nhận tồn tại vào máy</button>
                         </div>
 
-                        <h6>Danh sách lỗi tạm tính trên máy (<span id="localErrorCount">0</span> lỗi):</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered" id="tableLocalErrors">
-                                <thead class="table-dark">
+                        <div class="fw-bold small mb-2 d-flex justify-content-between">
+                            <span>SỐ LỖI GHI NHẬN TẠM THỜI:</span>
+                            <span class="text-danger fs-5" id="localErrorCount">0</span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 150px;">
+                            <table class="table table-sm table-bordered bg-white" id="tableLocalErrors">
+                                <thead class="table-dark small">
                                     <tr>
-                                        <th>Mã Trụ</th>
-                                        <th>Mã Lỗi</th>
-                                        <th>Mô Tả Hiện Trạng</th>
-                                        <th>Phân Loại</th>
+                                        <th>Trụ</th>
+                                        <th>Mã</th>
+                                        <th>Hiện trạng</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td colspan="4" class="text-center text-muted small">Chưa ghi nhận tồn tại nào. Tất cả đều mặc định Bình thường.</td></tr>
+                                <tbody style="font-size: 12px;">
+                                    <tr><td colspan="3" class="text-center text-muted py-2">Chưa ghi nhận lỗi. Tuyến dây mặc định Bình thường.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -152,24 +230,23 @@
                 </div>
 
                 <div class="tab-pane fade" id="submitTab">
-                    <div class="card p-4">
-                        <h5 class="card-title border-bottom pb-2 text-primary">III. HOÀN THÀNH CA CÔNG TÁC</h5>
+                    <div class="card card-field p-3">
+                        <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-file-check me-1"></i> KÝ XÁC NHẬN & ĐỒNG BỘ</div>
+                        
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nhận xét, đề xuất tổng thể của nhóm</label>
+                            <label class="form-label small fw-bold text-secondary">Nhận xét, kiến nghị của Nhóm kiểm tra</label>
                             <textarea id="txtNhanXetChung" class="form-control" rows="2">Hoan tat</textarea>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-bold d-block">Ký tên điện tử xác nhận (Khung cảm ứng):</label>
-                            <canvas id="signatureCanvas" class="signature-pad w-100" height="150"></canvas>
-                            <button class="btn btn-sm btn-secondary mt-1" onclick="clearSignature()"><i class="fa-solid fa-eraser me-1"></i>Xóa ký lại</button>
+                            <label class="form-label small fw-bold text-secondary d-block">Ký tên trực tiếp bằng ngón tay vào ô trống dưới đây:</label>
+                            <div class="signature-container">
+                                <canvas id="signatureCanvas" class="signature-pad" height="160"></canvas>
+                            </div>
+                            <button class="btn btn-sm btn-light border mt-2 px-3 fw-bold" onclick="clearSignature()"><i class="fa-solid fa-rotate-left text-danger me-1"></i>Xóa vẽ lại</button>
                         </div>
 
-                        <div class="alert alert-info small">
-                            <i class="fa-solid fa-circle-info me-1"></i> Hệ thống tự động lưu trữ dữ liệu tại máy điện thoại khi mất mạng. Khi thiết bị có sóng trở lại, nhấn nút bên dưới để đẩy báo cáo chính thức về Google Sheets.
-                        </div>
-
-                        <button id="btnSync" class="btn btn-primary w-100 py-2 fs-5" onclick="syncDataToServer()"><i class="fa-solid fa-cloud-arrow-up me-2"></i>ĐỒNG BỘ & XUẤT BÁO CÁO</button>
+                        <button id="btnSync" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-3 shadow" onclick="syncDataToServer()"><i class="fa-solid fa-cloud-arrow-up me-2"></i>ĐỒNG BỘ LÊN SHEET</button>
                     </div>
                 </div>
 
@@ -183,7 +260,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 1. CẤU HÌNH LIÊN KẾT HỆ THỐNG ĐÃ CÓ CỦA ANH ĐẸP
+        // CẤU HÌNH LIÊN KẾT HỆ THỐNG ĐÃ CÓ CỦA ANH ĐẸP
         const firebaseConfig = {
             apiKey: "AIzaSyBjkd68P4u_YynTWmbPPY7jAHJtZPi0rn8",
             authDomain: "quanlykiemtraluoidien.firebaseapp.com",
@@ -194,30 +271,37 @@
         };
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
 
-        // Khởi tạo Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Khởi tạo bộ nhớ cache tạm thời trên máy
         let MASTER_DATA = { lines: [], towers: [] };
         let CURRENT_INSPECTION = { idPhieu: '', maDuongDay: '', thoiGianBD: '', danhSachLoi: [] };
 
-        // Quản lý chữ ký cảm ứng
         const canvas = document.getElementById('signatureCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        // Tự động kiểm tra theo dõi trạng thái mạng Internet
+        // Xử lý tự động co giãn Canvas chữ ký tương thích tuyệt đối chiều rộng màn hình mọi dòng điện thoại
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.strokeStyle = "#0000ff";
+            ctx.lineWidth = 2.5;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
         window.addEventListener('online', () => updateNetworkIndicator(true));
         window.addEventListener('offline', () => updateNetworkIndicator(false));
 
         function updateNetworkIndicator(isOnline) {
             const badge = document.getElementById('networkStatus');
             if(isOnline) {
-                badge.className = "badge badge-online me-2";
+                badge.className = "badge badge-online badge-net me-1";
                 badge.innerHTML = '<i class="fa-solid fa-wifi me-1"></i>Online';
             } else {
-                badge.className = "badge badge-offline me-2";
-                badge.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Offline (Lưu Máy)';
+                badge.className = "badge badge-offline badge-net me-1";
+                badge.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Offline';
             }
         }
 
@@ -225,13 +309,11 @@
         function login() {
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return alert("Vui lòng nhập đầy đủ tài khoản!");
+            if(!email || !pass) return alert("Vui lòng nhập tài khoản!");
 
             firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then((userCredential) => {
-                    handleUserSession(userCredential.user);
-                })
-                .catch((error) => alert("Đăng nhập thất bại: " + error.message));
+                .then((userCredential) => handleUserSession(userCredential.user))
+                .catch((error) => alert("Lỗi đăng nhập: " + error.message));
         }
 
         function logout() {
@@ -239,7 +321,6 @@
                 document.getElementById('loginSection').classList.remove('d-none');
                 document.getElementById('mainSection').classList.add('d-none');
                 document.getElementById('btnLogout').classList.add('d-none');
-                document.getElementById('userDisplay').classList.add('d-none');
             });
         }
 
@@ -248,25 +329,18 @@
                 document.getElementById('loginSection').classList.add('d-none');
                 document.getElementById('mainSection').classList.remove('d-none');
                 document.getElementById('btnLogout').classList.remove('d-none');
-                const userDisplay = document.getElementById('userDisplay');
-                userDisplay.classList.remove('d-none');
-                userDisplay.innerText = user.email;
-                fetchMasterData(); // Tải trước danh mục PMIS lưu vào máy
+                setTimeout(resizeCanvas, 300); // Kích hoạt canvas chữ ký sau khi bung khung giao diện
+                fetchMasterData();
             }
         }
 
-        // Kiểm tra phiên đăng nhập cũ nếu có
         firebase.auth().onAuthStateChanged(handleUserSession);
 
-        // --- LUỒNG TẢI DỮ LIỆU ĐƯỜNG DÂY VÀ TRỤ TỪ PMIS (ĐỒNG BỘ OFFLINE) ---
+        // --- LUỒNG TẢI DỮ LIỆU ĐƯỜNG DÂY VÀ TRỤ TỪ PMIS ---
         function fetchMasterData() {
             if(!navigator.onLine) {
-                // Nếu mất mạng, đọc dữ liệu danh mục cũ lưu trong LocalStorage
                 const cached = localStorage.getItem('VDC_MASTER_DATA');
-                if(cached) {
-                    MASTER_DATA = JSON.parse(cached);
-                    renderLinesDropdown();
-                }
+                if(cached) { MASTER_DATA = JSON.parse(cached); renderLinesDropdown(); }
                 return;
             }
 
@@ -277,14 +351,14 @@
                     localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data));
                     renderLinesDropdown();
                 })
-                .catch(err => console.error("Lỗi lấy danh mục PMIS: ", err));
+                .catch(err => console.error("Lỗi đồng bộ nguồn PMIS: ", err));
         }
 
         function renderLinesDropdown() {
             const select = document.getElementById('selectDuongDay');
-            select.innerHTML = '<option value="">-- Chọn tuyến đường dây kiểm tra --</option>';
+            select.innerHTML = '<option value="">-- Chọn tuyến dây kiểm tra --</option>';
             MASTER_DATA.lines.forEach(line => {
-                select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay} (${line.CapDienAp})</option>`;
+                select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay}</option>`;
             });
         }
 
@@ -294,31 +368,25 @@
             document.getElementById('txtChungTru').value = lineObj ? lineObj.ChungTru_MacDinh : '';
         }
 
-        // --- LUỒNG BẮT ĐẦU TUẦN TRA ĐƯỜNG DÂY (TỰ SINH SỐ PHIẾU COTA) ---
+        // --- BẮT ĐẦU TUẦN TRA ĐƯỜNG DÂY (TỰ SINH SỐ PHIẾU THEO NĂM 2026) ---
         function startInspection() {
             const maDuongDay = document.getElementById('selectDuongDay').value;
             const chiHuy = document.getElementById('txtChiHuy').value;
-            if(!maDuongDay || !chiHuy) return alert("Vui lòng chọn tuyến dây và nhập tên Chỉ huy!");
+            if(!maDuongDay || !chiHuy) return alert("Vui lòng điền đủ thông tin!");
 
             const lineObj = MASTER_DATA.lines.find(l => l.MaDuongDay === maDuongDay);
-            
-            // Khởi tạo thông tin ca làm việc
             const date = new Date();
-            const year = date.getFullYear();
-            const randomId = Math.floor(100 + Math.random() * 900); // Sinh số phiếu ngẫu nhiên dạng COTA
+            const randomId = Math.floor(100 + Math.random() * 900);
             
-            CURRENT_INSPECTION.idPhieu = `${randomId}/${year}/LINE-QLDD`;
+            CURRENT_INSPECTION.idPhieu = `${randomId}/2026/LINE-QLDD`; // Đặt chuẩn năm 2026
             CURRENT_INSPECTION.maDuongDay = maDuongDay;
             CURRENT_INSPECTION.thoiGianBD = date.toISOString();
             CURRENT_INSPECTION.danhSachLoi = [];
 
-            document.getElementById('inspectingLine').innerText = `Đang khám: ${lineObj.TenDuongDay}`;
-            alert(`Đã khởi tạo số phiếu tự động: ${CURRENT_INSPECTION.idPhieu}`);
+            document.getElementById('inspectingLine').innerText = lineObj.TenDuongDay;
+            alert(`Đã lập Số phiếu tự động: ${CURRENT_INSPECTION.idPhieu}`);
 
-            // Tải danh sách vị trí trụ của riêng tuyến dây này ra màn hình dạng Checkbox
             renderTowerCheckboxes(maDuongDay);
-            
-            // Chuyển nhanh sang Tab 2 cho anh em nhập nhật ký
             document.getElementById('check-tab').click();
         }
 
@@ -328,23 +396,24 @@
             const towers = MASTER_DATA.towers.filter(t => t.MaDuongDay === maDuongDay);
             
             if(towers.length === 0) {
-                container.innerHTML = '<div class="text-danger small">Không thấy dữ liệu trụ của tuyến này trên PMIS.</div>';
+                container.innerHTML = '<div class="text-danger text-center py-2 small">Không tìm thấy mã trụ trên PMIS. Vui lòng rà soát cột MaDuongDay ở file Sheet!</div>';
                 return;
             }
+
+            // Sắp xếp danh mục trụ theo thứ tự tuyến di chuyển
+            towers.sort((a,b) => a.ThuTuSapXep - b.ThuTuSapXep);
 
             towers.forEach(t => {
                 container.innerHTML += `
                     <div class="col-4 col-sm-3">
-                        <div class="form-check card p-2 border text-center">
-                            <input class="form-check-input mx-auto" type="checkbox" name="chk_towers" value="${t.MaViTriPMIS}" id="t_${t.MaViTriPMIS}">
-                            <label class="form-check-label small d-block fw-bold" for="t_${t.MaViTriPMIS}">${t.TenTruHienThi}</label>
-                        </div>
+                        <input type="checkbox" name="chk_towers" value="${t.MaViTriPMIS}" id="t_${t.MaViTriPMIS}" class="tower-btn-check">
+                        <label class="tower-label-box" for="t_${t.MaViTriPMIS}">${t.TenTruHienThi}</label>
                     </div>
                 `;
             });
         }
 
-        // --- MODULE TỰ ĐỘNG GỢI Ý ĐIỀN LỖI THEO TỪ ĐIỂN ---
+        // --- GỢI Ý ĐIỀN TỪ ĐIỂN LỖI CHUẨN HÓA ---
         function autoFillErrorDetails() {
             const maLoi = document.getElementById('selectMaLoi').value;
             const txtMoTa = document.getElementById('txtMoTaLoi');
@@ -363,13 +432,16 @@
                 txtMoTa.value = "Bể vỡ 1 bát sứ pha trên cùng";
                 txtBienPhap.value = "Nhóm lập phương án thay sứ bể khi cắt điện";
                 selectPhanLoai.value = "XỬ LÝ KHI CÁT ĐIỆN";
+            } else if(maLoi === "1a") {
+                txtMoTa.value = "Cây xanh vi phạm khoảng cách an toàn hành lang";
+                txtBienPhap.value = "Chặt tỉa cây xanh trong và gần hành lang bảo đảm vận hành";
+                selectPhanLoai.value = "XỬ LÝ KHI KIỂM TRA";
             }
         }
 
-        // THUẬT TOÁN KHOANH VÙNG GOM LỖI HÀNG LOẠT LƯU OFFLINE
         function addErrorToList() {
             const checkboxes = document.querySelectorAll('input[name="chk_towers"]:checked');
-            if(checkboxes.length === 0) return alert("Vui lòng tích chọn ít nhất một vị trí Trụ bị lỗi!");
+            if(checkboxes.length === 0) return alert("Vui lòng gõ chọn mã Trụ bị lỗi trên khối vuông màn hình!");
 
             const maLoi = document.getElementById('selectMaLoi').value;
             const moTa = document.getElementById('txtMoTaLoi').value;
@@ -377,7 +449,6 @@
             const phanLoai = document.getElementById('selectPhanLoai').value;
 
             checkboxes.forEach(chk => {
-                // Đẩy lỗi vào cấu trúc lưu trữ cục bộ trên thiết bị máy
                 CURRENT_INSPECTION.danhSachLoi.push({
                     maViTri: chk.value,
                     maHangMucCon: maLoi,
@@ -385,9 +456,9 @@
                     bienPhapXL: bienPhap,
                     phanLoai: phanLoai,
                     ghiChu: "SCL 2026",
-                    base64Image: "" // Có thể mở rộng nhúng camera chụp ảnh tại đây
+                    base64Image: ""
                 });
-                chk.checked = false; // reset checkbox sau khi ghi nhận
+                chk.checked = false;
             });
 
             updateLocalErrorTable();
@@ -398,53 +469,49 @@
             document.getElementById('localErrorCount').innerText = CURRENT_INSPECTION.danhSachLoi.length;
             
             if(CURRENT_INSPECTION.danhSachLoi.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted small">Chưa ghi nhận tồn tại nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-2">Chưa ghi nhận lỗi.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = "";
             CURRENT_INSPECTION.danhSachLoi.forEach(loi => {
                 tbody.innerHTML += `
-                    <tr class="small">
-                        <td><span class="badge bg-danger">${loi.maViTri}</span></td>
+                    <tr>
+                        <td class="fw-bold text-primary">${loi.maViTri.split('_')[1] || loi.maViTri}</td>
                         <td>${loi.maHangMucCon}</td>
-                        <td>${loi.moTaLoi}</td>
-                        <td><span class="badge bg-warning text-dark">${loi.phanLoai}</span></td>
+                        <td class="text-truncate" style="max-width: 150px;">${loi.moTaLoi}</td>
                     </tr>
                 `;
             });
         }
 
-        // --- CƠ CHẾ KÝ TÊN ĐIỆN TỬ TRÊN KHUNG CẢM ỨNG ---
-        function getMousePos(canvasDom, touchOrMouseEvent) {
-            const rect = canvasDom.getBoundingClientRect();
-            if(touchOrMouseEvent.touches) {
-                return { x: touchOrMouseEvent.touches[0].clientX - rect.left, y: touchOrMouseEvent.touches[0].clientY - rect.top };
-            }
-            return { x: touchOrMouseEvent.clientX - rect.left, y: touchOrMouseEvent.clientY - rect.top };
+        // --- LOGIC VẼ KHUNG CẢM ỨNG DI ĐỘNG ---
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(canvas, e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getMousePos(canvas, e); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.strokeStyle = "#0000ff"; ctx.lineWidth = 2; });
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
         canvas.addEventListener('mouseup', () => isDrawing = false);
-        canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getMousePos(canvas, e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
-        canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getMousePos(canvas, e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
+        canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
         canvas.addEventListener('touchend', () => isDrawing = false);
 
         function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-        // --- CƠ CHẾ ĐỒNG BỘ ĐẨY DỮ LIỆU CHÍNH THỨC VỀ GOOGLE SHEETS ---
+        // --- ĐỒNG BỘ ĐẨY DỮ LIỆU ĐÁM MÂY ---
         function syncDataToServer() {
-            if(!CURRENT_INSPECTION.idPhieu) return alert("Vui lòng khởi tạo và thực hiện ca tuần tra trước!");
-            if(!navigator.onLine) return alert("Hiện tại không có mạng Internet (Offline). Hệ thống đã sao lưu dữ liệu an toàn tại máy, vui lòng nhấn đồng bộ khi có Wifi!");
+            if(!CURRENT_INSPECTION.idPhieu) return alert("Chưa có ca làm việc nào kích hoạt!");
+            if(!navigator.onLine) return alert("Mất kết nối internet. Hệ thống bảo lưu dữ liệu an toàn trên bộ nhớ đệm, vui lòng đồng bộ sau!");
 
-            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nén chữ ký và đồng bộ dữ liệu về Sheet...';
+            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đẩy dữ liệu...';
             document.getElementById('btnSync').disabled = true;
 
-            // Chuyển nét vẽ canvas thành chuỗi hình ảnh Base64 gọn gàng để truyền qua API
             const chuKyBase64 = canvas.toDataURL("image/png");
 
-            // Gom gói gói JSON tổng hợp
             const payload = {
                 action: "syncPhieu",
                 idPhieu: CURRENT_INSPECTION.idPhieu,
@@ -458,20 +525,19 @@
                 danhSachLoi: CURRENT_INSPECTION.danhSachLoi
             };
 
-            // Đẩy dữ liệu qua Fetch API về Google Apps Script
             fetch(APPS_SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors", // Tránh lỗi chặn CORS chéo miền của trình duyệt
+                mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                alert("ĐỒNG BỘ THÀNH CÔNG!\nDữ liệu đã được nạp an toàn vào hệ thống quản lý Google Sheets.");
-                location.reload(); // Tải lại trang để làm sạch phiên làm việc mới
+                alert("ĐỒNG BỘ DỮ LIỆU THÀNH CÔNG!\nBáo cáo đã đổ thẳng về hệ thống quản lý Google Sheets.");
+                location.reload();
             })
             .catch(err => {
-                alert("Lỗi kết nối đồng bộ: " + err);
-                document.getElementById('btnSync').innerText = "ĐỒNG BỘ & XUẤT BÁO CÁO";
+                alert("Lỗi mạng đồng bộ: " + err);
+                document.getElementById('btnSync').innerText = "ĐỒNG BỘ LÊN SHEET";
                 document.getElementById('btnSync').disabled = false;
             });
         }
