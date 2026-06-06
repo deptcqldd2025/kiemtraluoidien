@@ -85,11 +85,11 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary">Chỉ Huy Trực Tiếp</label>
-                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Họ tên Chỉ Huy Trực Tiếp">
+                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Đang tự động tải Chỉ huy...">
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-secondary">Danh sách công nhân đi cùng</label>
-                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Danh sách công nhân phối hợp">
+                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Đang tự động tải Đội hình...">
                         </div>
                         <button class="btn btn-success w-100 py-3 fw-bold rounded-3" onclick="startInspection()"><i class="fa-solid fa-shoe-prints me-2"></i>BẮT ĐẦU ĐI DỌC TUYẾN</button>
                     </div>
@@ -266,7 +266,7 @@
                     MASTER_DATA = data;
                     localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data));
                     renderLinesDropdownFiltered();
-                    autoFillTeamMembersByChucDanh(); // Gọi hàm tự điền đội hình dựa trên Chức danh
+                    autoFillTeamMembersByChucDanh(); // Gọi điền đội hình
                 })
                 .catch(err => {
                     console.warn("Lỗi mạng, đọc cache offline:", err);
@@ -279,47 +279,46 @@
                 });
         }
 
-        // THUẬT TOÁN ĐÃ NÂNG CẤP: Tự động phân loại Chỉ huy và Công nhân theo cột Chức danh sạch 100%
+        // THUẬT TOÁN ĐÃ ĐƯỢC ĐỒNG BỘ CHUẨN XÁC THEO HEADERS KHÔNG DẤU MỚI
         function autoFillTeamMembersByChucDanh() {
             try {
                 const savedSession = localStorage.getItem('VDC_USER_SESSION');
                 if(!savedSession || !MASTER_DATA.usersList) return;
 
                 const currentUser = JSON.parse(savedSession);
-                const userGroup = String(currentUser.Nhomphutrach).trim(); // Mã số nhóm hiện tại (Ví dụ: "1")
+                const userGroup = String(currentUser.nhomphutrach).trim();
 
-                // 1. Lọc ra toàn bộ anh em nhân sự nằm trong cùng một nhóm phụ trách
+                // 1. Lọc ra danh sách nhân sự nằm trong cùng một nhóm phụ trách
                 const groupMembers = MASTER_DATA.usersList.filter(u => {
-                    return String(u.Nhomphutrach).replace(/\D/g, "").trim() === userGroup;
+                    return String(u.nhomphutrach).replace(/\D/g, "").trim() === userGroup;
                 });
 
                 if (groupMembers.length === 0) return;
 
-                // Danh sách từ khóa chức danh đại diện cho vai trò Chỉ Huy
-                const leaderTitles = ["đội phó", "tổ trưởng", "tổ phó", "trưởng nhóm"];
+                // Các chuỗi chức danh đại diện cho vai trò Chỉ Huy (đã làm sạch viết thường)
+                const leaderTitles = ["doi pho", "to truong", "to pho", "truong nhom"];
 
                 // 2. Tìm kiếm người đóng vai trò Chỉ huy trực tiếp trong nhóm
                 let leaderObj = groupMembers.find(u => {
-                    const title = String(u.ChucDanh).toLowerCase().trim();
+                    const title = String(u.chucdanh).toLowerCase().trim();
                     return leaderTitles.some(t => title.includes(t));
                 });
 
-                // Phương án dự phòng nếu nhóm không có chức danh quản lý, lấy người đầu danh sách
-                const leaderName = leaderObj ? leaderObj.HoVaTen : groupMembers[0].HoVaTen;
+                const leaderName = leaderObj ? leaderObj.hovaten : groupMembers[0].hovaten;
 
                 // 3. Gom toàn bộ danh sách thành viên còn lại làm Công nhân đi cùng
                 const workersNames = groupMembers
-                    .filter(u => u.HoVaTen !== leaderName)
-                    .map(u => u.HoVaTen);
+                    .filter(u => u.hovaten !== leaderName)
+                    .map(u => u.hovaten);
 
-                // 4. Đổ dữ liệu tự động lên Form Tab 1 công tác
+                // 4. Đổ dữ liệu trực tiếp lên Form Tab 1 công tác
                 const txtChiHuy = document.getElementById('txtChiHuy');
                 const txtCongNhan = document.getElementById('txtCongNhan');
 
                 if (txtChiHuy) txtChiHuy.value = leaderName;
-                if (txtCongNhan) txtCongNhan.value = workersNames.join(", "); // Ngăn cách tự động bằng dấu phẩy
+                if (txtCongNhan) txtCongNhan.value = workersNames.join(", "); 
 
-            } catch (e) { console.error("Lỗi thuật toán trích xuất chức danh: ", e); }
+            } catch (e) { console.error("Lỗi tự điền thành viên nhóm: ", e); }
         }
 
         function renderLinesDropdownFiltered() {
@@ -329,12 +328,12 @@
             if(!savedSession || !MASTER_DATA.lines) return;
             
             const currentUser = JSON.parse(savedSession);
-            const userGroup = String(currentUser.Nhomphutrach).trim(); 
+            const userGroup = String(currentUser.nhomphutrach).trim(); 
 
             MASTER_DATA.lines.forEach(line => {
-                const lineGroup = String(line.Nhomphutrach).replace(/\D/g, "").trim();
+                const lineGroup = String(line.nhomphutrach).replace(/\D/g, "").trim();
                 if (lineGroup === userGroup) {
-                    select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay}</option>`;
+                    select.innerHTML += `<option value="${line.maduongday}">${line.tenduongday}</option>`;
                 }
             });
             if (select.options.length <= 1) select.innerHTML = '<option value="">-- Chưa được gán tuyến trên Sheet --</option>';
@@ -343,9 +342,9 @@
         function loadTowersForLine() {
             const maDuongDay = document.getElementById('selectDuongDay').value;
             if(!MASTER_DATA.lines) return;
-            const lineObj = MASTER_DATA.lines.find(l => l.MaDuongDay === maDuongDay);
+            const lineObj = MASTER_DATA.lines.find(l => l.maduongday === maDuongDay);
             const txtChungTru = document.getElementById('txtChungTru');
-            if(txtChungTru) txtChungTru.value = lineObj ? lineObj.ChungTru_MacDinh : '';
+            if(txtChungTru) txtChungTru.value = lineObj ? lineObj.chungtru_macdinh : '';
         }
 
         function startInspection() {
@@ -354,9 +353,9 @@
                 const chiHuy = document.getElementById('txtChiHuy').value.trim();
                 if(!maDuongDay || !chiHuy) return alert("Vui lòng chọn tuyến dây và nhập tên Chỉ huy!");
 
-                let lineObj = { TenDuongDay: "Tuyến đường dây" };
+                let lineObj = { tenduongday: "Tuyến đường dây" };
                 if (MASTER_DATA.lines) {
-                    const found = MASTER_DATA.lines.find(l => String(l.MaDuongDay).trim() === String(maDuongDay).trim());
+                    const found = MASTER_DATA.lines.find(l => String(l.maduongday).trim() === String(maDuongDay).trim());
                     if (found) lineObj = found;
                 }
                 
@@ -365,7 +364,7 @@
                 CURRENT_INSPECTION.thoiGianBD = new Date().toISOString();
                 CURRENT_INSPECTION.danhSachGhiNhan = [];
 
-                document.getElementById('inspectingLine').innerText = lineObj.TenDuongDay;
+                document.getElementById('inspectingLine').innerText = lineObj.tenduongday;
                 alert(`Đã lập Số phiếu định kỳ thành công: ${CURRENT_INSPECTION.idPhieu}`);
 
                 renderTowerCheckboxes(maDuongDay); switchTabCustom(2);
@@ -375,16 +374,16 @@
         function renderTowerCheckboxes(maDuongDay) {
             const container = document.getElementById('towerContainer'); if(!container) return; container.innerHTML = "";
             if(!MASTER_DATA.towers) return;
-            const towers = MASTER_DATA.towers.filter(t => String(t.MaDuongDay).trim() === String(maDuongDay).trim());
+            const towers = MASTER_DATA.towers.filter(t => String(t.maduongday).trim() === String(maDuongDay).trim());
             if(towers.length === 0) {
                 container.innerHTML = '<div class="text-danger small p-2 w-100 text-center">Không thấy dữ liệu trụ tháp.</div>'; return;
             }
-            towers.sort((a,b) => Number(a.ThuTuSapXep) - Number(b.ThuTuSapXep));
+            towers.sort((a,b) => Number(a.thutusapxep) - Number(b.thutusapxep));
             towers.forEach(t => {
                 container.innerHTML += `
                     <div class="col-4 col-sm-3">
-                        <input type="radio" name="rad_tower" value="${t.MaVitri}" data-name="${t.TenTruHienThi}" id="t_${t.MaVitri}" class="tower-btn-check">
-                        <label class="tower-label-box" for="t_${t.MaVitri}">${t.TenTruHienThi}</label>
+                        <input type="radio" name="rad_tower" value="${t.mavitri}" data-name="${t.tentruhienthi}" id="t_${t.mavitri}" class="tower-btn-check">
+                        <label class="tower-label-box" for="t_${t.mavitri}">${t.tentruhienthi}</label>
                     </div>`;
             });
         }
@@ -465,11 +464,10 @@
         }
         function deletePhoto(idx) { CURRENT_CAPTURED_PHOTOS.splice(idx, 1); renderPhotoPreviewGrid(); }
 
-        var bootstrap; // Tránh xung đột ngầm trình duyệt
         function saveRecord() {
             const radTower = document.querySelector('input[name="rad_tower"]:checked'); if(!radTower) return alert("LỖI: Chưa chọn vị trí Trụ điện kiểm tra!");
             const isNormal = parseInt(document.querySelector('input[name="radStatus"]:checked').value);
-            if(isNormal === 1 && CURRENT_CAPTURED_PHOTOS.length < 2) return alert("LỖI BẮT BUỘC: Vị trí Bình thường yêu cầu chụp đủ ít nhất 2 tấm hình (Gốc & Ngọn) để lưu làm bằng chứng!");
+            if(isNormal === 1 && CURRENT_CAPTURED_PHOTOS.length < 2) return alert("LỖI BẮT BUỘC: Vị trí Bình thường yêu cầu chụp đủ ít nhất 2 tấm hình (Gốc & Ngọn)!");
             if(isNormal === 0 && CURRENT_CAPTURED_PHOTOS.length < 1) return alert("LỖI BẮT BUỘC: Khai báo Bất thường yêu cầu chụp nhất 1 hình ảnh chi tiết tồn tại!");
 
             const codeCon = isNormal === 1 ? "OK" : document.getElementById('selectHangMucCon').value;
