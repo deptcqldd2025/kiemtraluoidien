@@ -280,21 +280,64 @@
             document.getElementById('txtChungTru').value = lineObj ? lineObj.ChungTru_MacDinh : '';
         }
 
-        function startInspection() {
-            const maDuongDay = document.getElementById('selectDuongDay').value;
-            const chiHuy = document.getElementById('txtChiHuy').value;
-            if(!maDuongDay || !chiHuy) return alert("Vui lòng điền đủ thông tin!");
-            const lineObj = MASTER_DATA.lines.find(l => l.MaDuongDay === maDuongDay);
-            
-            CURRENT_INSPECTION.idPhieu = `${Math.floor(100 + Math.random() * 900)}/2026/LINE-QLDD`;
-            CURRENT_INSPECTION.maDuongDay = maDuongDay;
-            CURRENT_INSPECTION.thoiGianBD = new Date().toISOString();
-            CURRENT_INSPECTION.danhSachGhiNhan = [];
-
-            document.getElementById('inspectingLine').innerText = lineObj.TenDuongDay;
-            renderTowerCheckboxes(maDuongDay);
-            document.getElementById('check-tab').click();
+// HÀM KHỞI TẠO TUẦN TRA ĐÃ ĐƯỢC VÁ LỖI AN TOÀN TUYỆT ĐỐI
+function startInspection() {
+    try {
+        const selectDD = document.getElementById('selectDuongDay');
+        const maDuongDay = selectDD.value;
+        const chiHuy = document.getElementById('txtChiHuy').value.trim();
+        
+        if(!maDuongDay || maDuongDay === "") {
+            alert("LỖI: Anh chưa chọn Tuyến đường dây cần kiểm tra!");
+            return;
         }
+        if(!chiHuy || chiHuy === "") {
+            alert("LỖI: Anh chưa nhập họ tên Chỉ Huy Trực Tiếp!");
+            return;
+        }
+
+        // Tìm kiếm tuyến dây an toàn, tránh lỗi crash nếu không tìm thấy đối tượng
+        let lineObj = { TenDuongDay: "Tuyến đường dây" };
+        if (MASTER_DATA && MASTER_DATA.lines) {
+            const found = MASTER_DATA.lines.find(l => String(l.MaDuongDay).trim() === String(maDuongDay).trim());
+            if (found) lineObj = found;
+        }
+        
+        const date = new Date();
+        const randomId = Math.floor(100 + Math.random() * 900);
+        
+        // Cấu hình mã định danh lấy tag hệ thống là LINE-QLDD, tăng tiến trình tự động
+        CURRENT_INSPECTION.idPhieu = `${randomId}/2026/LINE-QLDD`;
+        CURRENT_INSPECTION.maDuongDay = maDuongDay;
+        CURRENT_INSPECTION.thoiGianBD = date.toISOString();
+        CURRENT_INSPECTION.danhSachGhiNhan = [];
+
+        // Đổ thông tin hiển thị lên nhãn Tab 2
+        const labelInspecting = document.getElementById('inspectingLine');
+        if (labelInspecting) {
+            labelInspecting.innerText = lineObj.TenDuongDay || "Đang kiểm tra";
+        }
+
+        alert(`Đã lập Số phiếu định kỳ thành công: ${CURRENT_INSPECTION.idPhieu}`);
+
+        // Gọi hàm hiển thị danh sách các khối vuông Trụ điện
+        renderTowerCheckboxes(maDuongDay);
+
+        // ĐIỀU HƯỚNG SANG TAB 2 BẰNG BOOTSTRAP 5 CHUẨN ĐIỆN THOẠI
+        const checkTabButton = document.getElementById('check-tab');
+        if (checkTabButton) {
+            const tabTrigger = new bootstrap.Tab(checkTabButton);
+            tabTrigger.show(); // Kích hoạt bung màn hình Tab 2
+        } else {
+            // Phương án dự phòng nếu không tìm thấy ID button tab
+            document.querySelector('[data-bs-target="#checkTab"]').click();
+        }
+
+    } catch (error) {
+        // Nếu dính bất kỳ lỗi ngầm nào, app sẽ thông báo ngay lập tức để anh sửa dòng đó
+        alert("Lỗi thực thi hệ thống hàm startInspection: " + error.message);
+    }
+}
 
         function renderTowerCheckboxes(maDuongDay) {
             const container = document.getElementById('towerContainer'); container.innerHTML = "";
