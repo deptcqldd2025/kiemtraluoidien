@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VDC Field App - Kiểm Tra Lưới Điện 2026</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { 
@@ -24,7 +22,6 @@
         }
         .nav-field .nav-link.active { color: #ffffff; background-color: #0d6efd; box-shadow: 0 4px 8px rgba(13,110,253,0.3); }
         
-        /* Ẩn các màn hình tab mặc định */
         .tab-custom-pane { display: none; }
         .tab-custom-pane.active { display: block; }
 
@@ -57,29 +54,24 @@
 
     <div class="container-mobile">
         
-        <!-- MÀN HÌNH ĐĂNG NHẬP -->
         <div id="loginSection" class="card card-field p-4 text-center mt-3">
             <div class="mb-3 text-primary"><i class="fa-solid fa-shield-halved fa-3x"></i></div>
             <h5 class="fw-bold mb-4">HỆ THỐNG KIỂM TRA ĐỊNH KỲ</h5>
-            <div class="mb-3 text-start"><div class="form-floating"><input type="email" id="loginEmail" class="form-control" placeholder="name@example.com"><label>Email</label></div></div>
-            <div class="mb-4 text-start"><div class="form-floating"><input type="password" id="loginPassword" class="form-control" placeholder="Password"><label>Mật khẩu</label></div></div>
-            <button class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()">ĐĂNG NHẬP NGAY</button>
+            <div class="mb-3 text-start"><div class="form-floating"><input type="text" id="loginAccount" class="form-control" placeholder="deptc"><label>Tài khoản (Account)</label></div></div>
+            <div class="mb-4 text-start"><div class="form-floating"><input type="password" id="loginPassword" class="form-control" placeholder="Mật khẩu ứng dụng"><label>Mật khẩu ứng dụng (PassApp)</label></div></div>
+            <button id="btnLogin" class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()">ĐĂNG NHẬP HỆ THỐNG</button>
         </div>
 
-        <!-- GIAO DIỆN CHỨC NĂNG CHÍNH CHẠY SAU KHI LOGIN -->
         <div id="mainSection" class="d-none">
             
-            <!-- MENU DI CHUYỂN TAB BẰNG JS THUẦN -->
             <div class="nav-field">
                 <div class="nav-item"><button class="nav-link active" id="tab-btn-1" onclick="switchTabCustom(1)"><i class="fa-solid fa-file-signature d-block mb-1 fs-5"></i>1. Khởi Tạo</button></div>
                 <div class="nav-item"><button class="nav-link" id="tab-btn-2" onclick="switchTabCustom(2)"><i class="fa-solid fa-house-signal d-block mb-1 fs-5"></i>2. Ghi Nhận</button></div>
                 <div class="nav-item"><button class="nav-link" id="tab-btn-3" onclick="switchTabCustom(3)"><i class="fa-solid fa-cloud-check d-block mb-1 fs-5"></i>3. Khóa Phiếu</button></div>
             </div>
 
-            <!-- NỘI DUNG CÁC MÀN HÌNH MÔ HÌNH THỰC ĐỊA -->
             <div class="tab-custom-content">
                 
-                <!-- TAB 1: KHỞI TẠO LỆNH CÔNG TÁC -->
                 <div class="tab-custom-pane active" id="paneTab1">
                     <div class="card card-field p-3">
                         <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-folder-open me-1"></i> KHAI BÁO HÀNH CHÍNH SƠ BỘ</div>
@@ -103,7 +95,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: GHI NHẬN KẾT QUẢ TỒN TẠI TỪNG VỊ TRÍ -->
                 <div class="tab-custom-pane" id="paneTab2">
                     <div class="card card-field p-3">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
@@ -111,7 +102,6 @@
                             <span id="inspectingLine" class="badge bg-secondary p-2 text-truncate" style="max-width: 150px;">Chưa chọn tuyến</span>
                         </div>
 
-                        <!-- CHỌN VỊ TRÍ TRỤ -->
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-danger"><i class="fa-solid fa-bullseye me-1"></i> Bước 1: Chọn vị trí Trụ kiểm tra:</label>
                             <div id="towerContainer" class="row gx-2 gy-2 p-2 rounded-3 bg-light border" style="max-height: 140px; overflow-y: auto;">
@@ -119,7 +109,6 @@
                             </div>
                         </div>
 
-                        <!-- KHUNG TRẠNG THÁI (BÌNH THƯỜNG MẶC ĐỊNH) -->
                         <div class="p-3 border rounded-3 bg-light mb-3">
                             <div class="mb-3 bg-white p-2 rounded-3 border d-flex justify-content-between align-items-center">
                                 <span class="fw-bold small text-secondary">Bước 2: Trạng thái tại trụ</span>
@@ -132,7 +121,6 @@
                                 </div>
                             </div>
 
-                            <!-- KHU VỰC PHÂN TẦNG 2 CỘT (ẨN MẶC ĐỊNH - CHỈ HIỆN KHI BẤT THƯỜNG) -->
                             <div id="dynamicCatalogContainer" class="d-none">
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-secondary">Chọn Hạng mục chính (Cột 2)</label>
@@ -157,7 +145,6 @@
                                 </div>
                             </div>
                             
-                            <!-- KHU VỰC CAMERA CHỤP HÌNH ẢNH MÌNH CHỨNG -->
                             <div class="mb-3 bg-white p-2 rounded-3 border">
                                 <label id="cameraLabel" class="form-label small fw-bold text-danger"><i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp ảnh tổng thể Ngọn & Gốc (Tối thiểu 2 ảnh bắt buộc)</label>
                                 <input type="file" id="cameraInput" accept="image/*" capture="environment" class="form-control form-control-sm" onchange="handleCameraCapture(this)">
@@ -177,7 +164,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: ĐÓNG PHIẾU VÀ ĐỒNG BỘ -->
                 <div class="tab-custom-pane" id="paneTab3">
                     <div class="card card-field p-3">
                         <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-file-check me-1"></i> KÝ XÁC NHẬN & ĐỒNG BỘ</div>
@@ -199,40 +185,8 @@
 
     </div>
 
-    <!-- SDK CORE KHÔNG PHỤ THUỘC THƯ VIỆN NGOÀI GÂY CRASH -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkd68P4u_YynTWmbPPY7jAHJtZPi0rn8",
-            authDomain: "quanlykiemtraluoidien.firebaseapp.com",
-            projectId: "quanlykiemtraluoidien",
-            storageBucket: "quanlykiemtraluoidien.firebasestorage.app",
-            messagingSenderId: "600153166284",
-            appId: "1:600153166284:web:8bff37e425b234474ccd69"
-        };
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
-
-        firebase.initializeApp(firebaseConfig);
-
-        const DANH_MUC_LOI = {
-            "I": [
-                { ma: "1a", text: "1a./ Cây trong hành lang vi phạm khoảng cách", moTa: "Cây xanh vi phạm khoảng cách an toàn hành lang", bienPhap: "Chặt tỉa cây bảo đảm hành lang tuyến", phanLoai: "XỬ LÝ KHI KIỂM TRA" },
-                { ma: "2a", text: "2a./ Hiện tượng sạt lở đất quanh chân trụ", moTa: "Đất có hiện tượng sạt lở nhẹ quanh móng trụ", bienPhap: "Theo dõi, đề xuất sửa chữa móng chân trụ", phanLoai: "TIẾP TỤC THEO DÕI" }
-            ],
-            "II": [
-                { ma: "3d", text: "3d./ Biển số trụ/tên tuyến mờ, bong tróc", moTa: "Biển số trụ không đúng thực tế, mờ, biển tên tuyến mờ", bienPhap: "Điều chỉnh lại số trụ, Sơn, Thay thế biển số trụ", phanLoai: "TIẾP TỤC THEO DÕI" },
-                { ma: "3n", text: "3n./ Dây hạ thế câu tạp, viễn thông mắc vào trụ", moTa: "Dây viễn thông gác trực tiếp lên thân trụ tháp", bienPhap: "Lập văn bản gửi điện lực khu vực phối hợp xử lý", phanLoai: "XỬ LÝ KHI KIỂM TRA" },
-                { ma: "4g", text: "4g./ Sơn trắng đỏ cảnh báo giao thông bị mờ", moTa: "Sơn trắng đỏ cảnh báo giao thông bị mờ", bienPhap: "Lập phương án SCTX tự thực hiện sơn lại màu trắng đỏ", phanLoai: "TIẾP TỤC THEO DÕI" }
-            ],
-            "III": [
-                { ma: "6c", text: "6c./ Cách điện bị bể, nứt vỡ bát sứ", moTa: "Bể vỡ bát sứ chuỗi cách điện pha", bienPhap: "Lập phương án thay sứ bể khi công tác cắt điện", phanLoai: "XỬ LÝ KHI CÁT ĐIỆN" }
-            ],
-            "IV": [
-                { ma: "8a", text: "8a./ Công trình phát sinh xây dựng trong hành lang", moTa: "Công trình xây dựng phát sinh sát hành lang bảo vệ", bienPhap: "Lập biên bản vi phạm hành lang an toàn lưới điện", phanLoai: "XỬ LÝ KHI KIỂM TRA" }
-            ]
-        };
 
         let MASTER_DATA = { lines: [], towers: [] };
         let CURRENT_INSPECTION = { idPhieu: '', maDuongDay: '', thoiGianBD: '', danhSachGhiNhan: [] };
@@ -242,7 +196,6 @@
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        // CHUYỂN TAB CƯỠNG BỨC BẰNG JS THUẦN KHÔNG PHỤ THUỘC BOOTSTRAP ĐỂ CHỐNG KẸT MÀNH HÌNH
         function switchTabCustom(tabIndex) {
             document.querySelectorAll('.nav-field .nav-link').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-custom-content .tab-custom-pane').forEach(pane => pane.classList.remove('active'));
@@ -271,42 +224,85 @@
         }
 
         function login() {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return alert("Vui lòng nhập tài khoản!");
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then(userCredential => handleUserSession(userCredential.user))
-                .catch(error => alert("Lỗi đăng nhập: " + error.message));
+            const account = document.getElementById('loginAccount').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if(!account || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
+
+            const btn = document.getElementById('btnLogin');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...';
+            btn.disabled = true;
+
+            fetch(`${APPS_SCRIPT_URL}?action=loginApp&account=${account}&password=${pass}`)
+                .then(res => res.json())
+                .then(resData => {
+                    btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    if(resData.success) {
+                        localStorage.setItem('VDC_USER_SESSION', JSON.stringify(resData.user));
+                        handleUserSession(resData.user);
+                    } else { alert(resData.message); }
+                })
+                .catch(err => {
+                    alert("Lỗi máy chủ: " + err); btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                });
         }
-        function logout() { firebase.auth().signOut().then(() => location.reload()); }
+
+        function logout() { localStorage.removeItem('VDC_USER_SESSION'); location.reload(); }
         
         function handleUserSession(user) {
             if(user) {
                 document.getElementById('loginSection').classList.add('d-none');
                 document.getElementById('mainSection').classList.remove('d-none');
                 document.getElementById('btnLogout').classList.remove('d-none');
+                
+                const txtChiHuy = document.getElementById('txtChiHuy');
+                if(txtChiHuy && txtChiHuy.value === "") txtChiHuy.value = user.HoVaTen;
+
                 fetchMasterData();
             }
         }
-        firebase.auth().onAuthStateChanged(handleUserSession);
+
+        window.onload = function() {
+            const savedSession = localStorage.getItem('VDC_USER_SESSION');
+            if(savedSession) { handleUserSession(JSON.parse(savedSession)); }
+        };
 
         function fetchMasterData() {
             if(!navigator.onLine) {
                 const cached = localStorage.getItem('VDC_MASTER_DATA');
-                if(cached) { MASTER_DATA = JSON.parse(cached); renderLinesDropdown(); }
+                if(cached) { MASTER_DATA = JSON.parse(cached); renderLinesDropdownFiltered(); }
                 return;
             }
             fetch(`${APPS_SCRIPT_URL}?action=getMasterData`).then(res => res.json()).then(data => {
-                MASTER_DATA = data; localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data)); renderLinesDropdown();
+                MASTER_DATA = data; localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data)); renderLinesDropdownFiltered();
             }).catch(err => console.error("Lỗi:", err));
         }
 
-        function renderLinesDropdown() {
+        // THUẬT TOÁN ĐÃ CẢI TIẾN: Lọc và chỉ hiển thị đường dây thuộc về Nhóm phụ trách của Công nhân
+        function renderLinesDropdownFiltered() {
             const select = document.getElementById('selectDuongDay');
             if(!select) return;
             select.innerHTML = '<option value="">-- Chọn tuyến dây kiểm tra --</option>';
-            if(MASTER_DATA.lines) {
-                MASTER_DATA.lines.forEach(line => { select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay}</option>`; });
+            
+            const savedSession = localStorage.getItem('VDC_USER_SESSION');
+            if(!savedSession || !MASTER_DATA.lines) return;
+            
+            const currentUser = JSON.parse(savedSession);
+            // Lấy mã số nhóm của User đăng nhập (Ví dụ: "1")
+            const userGroup = String(currentUser.Nhomphutrach).trim(); 
+
+            MASTER_DATA.lines.forEach(line => {
+                // Chuẩn hóa mã nhóm trong cột Nhomphutrach của sheet đường dây
+                const lineGroup = String(line.Nhomphutrach).replace(/\D/g, "").trim();
+                
+                // So khớp tuyệt đối: Nếu trùng mã nhóm phụ trách mới cho hiển thị lên Dropdown
+                if (lineGroup === userGroup) {
+                    select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay} (${line.CapDienAp})</option>`;
+                }
+            });
+            
+            // Nếu nhóm không có tuyến nào, báo cho công nhân biết
+            if (select.options.length <= 1) {
+                select.innerHTML = '<option value="">-- Nhóm của anh chưa được gán tuyến trên Sheet --</option>';
             }
         }
 
@@ -339,8 +335,8 @@
                 alert(`Đã lập Số phiếu định kỳ thành công: ${CURRENT_INSPECTION.idPhieu}`);
 
                 renderTowerCheckboxes(maDuongDay);
-                switchTabCustom(2); // Ép nhảy mượt mà sang Tab 2 bằng JS thuần
-            } catch(e) { alert("Lỗi tại startInspection: " + e.message); }
+                switchTabCustom(2);
+            } catch(e) { alert("Lỗi: " + e.message); }
         }
 
         function renderTowerCheckboxes(maDuongDay) {
@@ -350,7 +346,7 @@
             if(!MASTER_DATA.towers) return;
             const towers = MASTER_DATA.towers.filter(t => String(t.MaDuongDay).trim() === String(maDuongDay).trim());
             if(towers.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-2 w-100 text-center">Không thấy dữ liệu trụ trên PMIS. Kiểm tra cột MaDuongDay!</div>'; return;
+                container.innerHTML = '<div class="text-danger small p-2 w-100 text-center">Không thấy dữ liệu trụ tháp. Kiểm tra cột MaDuongDay!</div>'; return;
             }
             towers.sort((a,b) => Number(a.ThuTuSapXep) - Number(b.ThuTuSapXep));
             towers.forEach(t => {
@@ -380,7 +376,6 @@
         function autoFillErrorDetails() {
             const selectChinh = document.getElementById('selectHangMucChinh');
             const selectCon = document.getElementById('selectHangMucCon');
-            // Nếu khung đang bị ẩn (Bình thường), chặn hàm chạy để tránh lỗi null
             if (!selectChinh || !selectCon || document.getElementById('dynamicCatalogContainer').classList.contains('d-none')) return;
 
             const codeChinh = selectChinh.value;
@@ -420,12 +415,11 @@
             if(grid) grid.innerHTML = "";
         }
 
-        // ĐẶT TÊN FILE THEO MÃ TRỤ CHUẨN + TIMESTAMP (100% KHÔNG LO MẤT SÓNG GPS)
         function handleCameraCapture(input) {
             if (input.files && input.files[0]) {
                 const radTower = document.querySelector('input[name="rad_tower"]:checked');
                 if (!radTower) {
-                    alert("LỖI BẮT BUỘC: Anh phải chạm chọn Trụ kiểm tra ở Bước 1 trước khi chụp hình!");
+                    alert("LỖI BẮT BUỘC: Anh phải chọn Trụ kiểm tra ở Bước 1 trước khi chụp hình!");
                     input.value = ""; return;
                 }
 
@@ -502,7 +496,6 @@
                 hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS]
             });
 
-            // RESET TRẠNG THÁI FORM AN TOÀN CHỐNG BIẾN NULL
             radTower.checked = false;
             CURRENT_CAPTURED_PHOTOS = [];
             const grid = document.getElementById('photoPreviewGrid'); if(grid) grid.innerHTML = "";
@@ -547,7 +540,7 @@
             if(CURRENT_INSPECTION.danhSachGhiNhan.length === 0) return alert("Chưa ghi nhận vị trí trụ nào!");
             if(!navigator.onLine) return alert("Thiết bị mất mạng Internet. Không thể đồng bộ!");
 
-            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nén dữ liệu hình ảnh và đẩy về Sheet...';
+            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đồng bộ ảnh và phiếu về Google Sheet...';
             document.getElementById('btnSync').disabled = true;
 
             const payload = {
