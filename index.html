@@ -5,55 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VDC Field App</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hidden { display: none; }
+        .tower-label { border: 1px solid #ccc; padding: 10px; margin: 5px; cursor: pointer; display: inline-block; }
+        .active-tab { border-bottom: 2px solid blue; }
+    </style>
 </head>
 <body class="bg-light">
-
-    <div id="loginSection" class="container mt-5">
-        <div class="card p-4">
-            <h5 class="text-center mb-3">ĐĂNG NHẬP HỆ THỐNG</h5>
+    <div class="container mt-3">
+        <div id="loginSection" class="card p-3">
             <input type="text" id="loginAccount" class="form-control mb-2" placeholder="Account">
-            <input type="password" id="loginPassword" class="form-control mb-3" placeholder="PassApp">
+            <input type="password" id="loginPassword" class="form-control mb-2" placeholder="PassApp">
             <button id="btnLogin" class="btn btn-primary w-100" onclick="login()">ĐĂNG NHẬP</button>
+        </div>
+
+        <div id="mainSection" class="hidden">
+            <div class="d-flex mb-3">
+                <button class="nav-link active-tab" onclick="switchTab(1)">Khởi Tạo</button>
+                <button class="nav-link" onclick="switchTab(2)">Ghi Nhận</button>
+            </div>
+            
+            <div id="pane1">
+                <select id="selectDuongDay" class="form-select mb-2" onchange="loadTowers()"></select>
+                <input type="text" id="txtChiHuy" class="form-control mb-2" placeholder="Chỉ huy">
+                <input type="text" id="txtCongNhan" class="form-control mb-2" placeholder="Công nhân">
+                <button class="btn btn-success w-100" onclick="startInspection()">BẮT ĐẦU</button>
+            </div>
+
+            <div id="pane2" class="hidden">
+                <div id="towerContainer"></div>
+                <button class="btn btn-primary w-100" onclick="syncData()">ĐỒNG BỘ</button>
+            </div>
         </div>
     </div>
 
-    <div id="mainSection" class="container mt-3 d-none">
-        <h4 class="text-center text-primary">ĐÃ ĐĂNG NHẬP THÀNH CÔNG</h4>
-        <p id="debugInfo" class="text-muted small"></p>
-        <button class="btn btn-danger w-100" onclick="localStorage.clear(); location.reload();">ĐĂNG XUẤT</button>
-    </div>
-
     <script>
-        // HÀNG 147: DÁN ĐÚNG LINK WEB APP CỦA ANH VÀO ĐÂY
+        // DÁN LINK SCRIPT CỦA ANH VÀO ĐÂY (DÒNG 165)
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
+        
+        let MASTER_DATA = { lines: [], towers: [], usersList: [] };
 
         function login() {
-            const acc = document.getElementById('loginAccount').value.trim();
-            const pass = document.getElementById('loginPassword').value.trim();
-            const btn = document.getElementById('btnLogin');
-            
-            btn.innerText = "Đang kết nối...";
-            btn.disabled = true;
-
+            const acc = document.getElementById('loginAccount').value;
+            const pass = document.getElementById('loginPassword').value;
             fetch(APPS_SCRIPT_URL + "?action=loginapp&account=" + acc + "&password=" + pass)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.success) {
-                        document.getElementById('loginSection').classList.add('d-none');
-                        document.getElementById('mainSection').classList.remove('d-none');
-                        document.getElementById('debugInfo').innerText = "Chào: " + data.user.hovaten;
-                    } else {
-                        alert(data.message);
-                        btn.innerText = "ĐĂNG NHẬP";
-                        btn.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    alert("Lỗi kết nối: " + err);
-                    btn.innerText = "ĐĂNG NHẬP";
-                    btn.disabled = false;
-                });
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    localStorage.setItem('USER', JSON.stringify(data.user));
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('mainSection').classList.remove('hidden');
+                    fetchData();
+                } else { alert(data.message); }
+            });
         }
+
+        function fetchData() {
+            fetch(APPS_SCRIPT_URL + "?action=getmasterdata")
+            .then(res => res.json())
+            .then(data => {
+                MASTER_DATA = data;
+                let sel = document.getElementById('selectDuongDay');
+                data.lines.forEach(l => sel.innerHTML += `<option value="${l.MaDuongDay}">${l.TenDuongDay}</option>`);
+                autoFillTeam();
+            });
+        }
+
+        function autoFillTeam() {
+            const user = JSON.parse(localStorage.getItem('USER'));
+            const group = String(user.Nhomphutrach).trim();
+            const members = MASTER_DATA.usersList.filter(u => String(u.Nhomphutrach).trim() === group);
+            
+            const leader = members.find(u => u.chucdanh.toLowerCase().includes("trưởng nhóm")) || members[0];
+            document.getElementById('txtChiHuy').value = leader.hovaten;
+            document.getElementById('txtCongNhan').value = members.filter(u => u.hovaten !== leader.hovaten).map(u => u.hovaten).join(", ");
+        }
+
+        function loadTowers() {
+            const lineId = document.getElementById('selectDuongDay').value;
+            const cont = document.getElementById('towerContainer');
+            cont.innerHTML = "";
+            MASTER_DATA.towers.filter(t => t.MaDuongDay == lineId).forEach(t => {
+                cont.innerHTML += `<div class="tower-label">${t.TenTruHienThi}</div>`;
+            });
+        }
+
+        function switchTab(t) {
+            document.getElementById('pane1').classList.toggle('hidden', t !== 1);
+            document.getElementById('pane2').classList.toggle('hidden', t !== 2);
+        }
+
+        function syncData() { alert("Đang đồng bộ..."); }
     </script>
 </body>
 </html>
