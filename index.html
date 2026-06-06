@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VDC Field App - Kiểm Tra Lưới Điện 2026</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { 
@@ -54,6 +56,7 @@
 
     <div class="container-mobile">
         
+        <!-- MÀN HÌNH ĐĂNG NHẬP NỘI BỘ -->
         <div id="loginSection" class="card card-field p-4 text-center mt-3">
             <div class="mb-3 text-primary"><i class="fa-solid fa-shield-halved fa-3x"></i></div>
             <h5 class="fw-bold mb-4">HỆ THỐNG KIỂM TRA ĐỊNH KỲ</h5>
@@ -62,6 +65,7 @@
             <button id="btnLogin" class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()">ĐĂNG NHẬP HỆ THỐNG</button>
         </div>
 
+        <!-- GIAO DIỆN CHỨC NĂNG CHÍNH ĐI FIELD -->
         <div id="mainSection" class="d-none">
             
             <div class="nav-field">
@@ -72,6 +76,7 @@
 
             <div class="tab-custom-content">
                 
+                <!-- TAB 1: KHỞI TẠO LỆNH CÔNG TÁC -->
                 <div class="tab-custom-pane active" id="paneTab1">
                     <div class="card card-field p-3">
                         <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-folder-open me-1"></i> KHAI BÁO HÀNH CHÍNH SƠ BỘ</div>
@@ -95,6 +100,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 2: GHI NHẬN KẾT QUẢ TỒN TẠI TỪNG VỊ TRÍ -->
                 <div class="tab-custom-pane" id="paneTab2">
                     <div class="card card-field p-3">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
@@ -102,6 +108,7 @@
                             <span id="inspectingLine" class="badge bg-secondary p-2 text-truncate" style="max-width: 150px;">Chưa chọn tuyến</span>
                         </div>
 
+                        <!-- CHỌN VỊ TRÍ TRỤ -->
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-danger"><i class="fa-solid fa-bullseye me-1"></i> Bước 1: Chọn vị trí Trụ kiểm tra:</label>
                             <div id="towerContainer" class="row gx-2 gy-2 p-2 rounded-3 bg-light border" style="max-height: 140px; overflow-y: auto;">
@@ -109,6 +116,7 @@
                             </div>
                         </div>
 
+                        <!-- KHUNG TRẠNG THÁI -->
                         <div class="p-3 border rounded-3 bg-light mb-3">
                             <div class="mb-3 bg-white p-2 rounded-3 border d-flex justify-content-between align-items-center">
                                 <span class="fw-bold small text-secondary">Bước 2: Trạng thái tại trụ</span>
@@ -121,15 +129,11 @@
                                 </div>
                             </div>
 
+                            <!-- KHU VỰC PHÂN TẦNG ĐỘNG 2 CẤP ĐỌC TỪ GOOGLE SHEET -->
                             <div id="dynamicCatalogContainer" class="d-none">
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-secondary">Chọn Hạng mục chính (Cột 2)</label>
-                                    <select id="selectHangMucChinh" class="form-select form-select-sm" onchange="updateHangMucConDropdown()">
-                                        <option value="I">I./ Điều kiện các vùng xung quanh đường dây</option>
-                                        <option value="II" selected>II./ Các điều kiện của cấu trúc cột</option>
-                                        <option value="III">III./ Dây dẫn cách điện và dây chống sét</option>
-                                        <option value="IV">IV./ Hành lang an toàn và biển báo</option>
-                                    </select>
+                                    <select id="selectHangMucChinh" class="form-select form-select-sm" onchange="updateHangMucConDropdown()"></select>
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-secondary">Chọn Hạng mục kiểm tra chi tiết (Cột 3)</label>
@@ -137,14 +141,26 @@
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-danger">Tình trạng bất thường cụ thể</label>
-                                    <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" placeholder="Nhập mô tả lỗi">
+                                    <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" placeholder="Nhập mô tả lỗi hiện trường">
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label small fw-bold text-secondary">Biện pháp đề xuất & Thời gian xử lý</label>
-                                    <input type="text" id="txtBienPhap" class="form-control form-control-sm" placeholder="Biện pháp xử lý">
+                                    <label class="form-label small fw-bold text-secondary">Biện pháp đề xuất & Phân loại</label>
+                                    <div class="row g-2">
+                                        <div class="col-7">
+                                            <input type="text" id="txtBienPhap" class="form-control form-control-sm" placeholder="Biện pháp đề xuất">
+                                        </div>
+                                        <div class="col-5">
+                                            <select id="selectPhanLoai" class="form-select form-select-sm fw-bold text-danger">
+                                                <option value="TIẾP TỤC THEO DÕI">THEO DÕI</option>
+                                                <option value="XỬ LÝ KHI CÁT ĐIỆN">CẮT ĐIỆN</option>
+                                                <option value="XỬ LÝ KHI KIỂM TRA">TẠI CHỖ</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
+                            <!-- KHU VỰC CAMERA CHỤP HÌNH ẢNH MÌNH CHỨNG -->
                             <div class="mb-3 bg-white p-2 rounded-3 border">
                                 <label id="cameraLabel" class="form-label small fw-bold text-danger"><i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp ảnh tổng thể Ngọn & Gốc (Tối thiểu 2 ảnh bắt buộc)</label>
                                 <input type="file" id="cameraInput" accept="image/*" capture="environment" class="form-control form-control-sm" onchange="handleCameraCapture(this)">
@@ -164,6 +180,7 @@
                     </div>
                 </div>
 
+                <!-- TAB 3: ĐÓNG PHIẾU VÀ ĐỒNG BỘ -->
                 <div class="tab-custom-pane" id="paneTab3">
                     <div class="card card-field p-3">
                         <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-file-check me-1"></i> KÝ XÁC NHẬN & ĐỒNG BỘ</div>
@@ -186,9 +203,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
-
-        let MASTER_DATA = { lines: [], towers: [], usersList: [] };
+        let MASTER_DATA = { lines: [], towers: [], usersList: [], checkCatalog: [] }; // Nạp checkCatalog từ Sheet kiểm tra
         let CURRENT_INSPECTION = { idPhieu: '', maDuongDay: '', thoiGianBD: '', danhSachGhiNhan: [] };
         let CURRENT_CAPTURED_PHOTOS = [];
 
@@ -266,158 +281,129 @@
                     MASTER_DATA = data;
                     localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data));
                     renderLinesDropdownFiltered();
-                    autoFillTeamMembersByChucDanh(); // Gọi điền đội hình
+                    autoFillTeamMembersByChucDanh();
+                    renderHangMucChinhDropdown(); // Nạp danh mục mục lớn động ngay khi đồng bộ
                 })
                 .catch(err => {
-                    console.warn("Lỗi mạng, đọc cache offline:", err);
+                    console.warn("Lỗi mạng, nạp cache offline:", err);
                     const cached = localStorage.getItem('VDC_MASTER_DATA');
                     if(cached) { 
                         MASTER_DATA = JSON.parse(cached); 
                         renderLinesDropdownFiltered();
                         autoFillTeamMembersByChucDanh();
+                        renderHangMucChinhDropdown();
                     }
                 });
         }
 
-        // THUẬT TOÁN ĐÃ ĐƯỢC ĐỒNG BỘ CHUẨN XÁC THEO HEADERS KHÔNG DẤU MỚI
         function autoFillTeamMembersByChucDanh() {
             try {
                 const savedSession = localStorage.getItem('VDC_USER_SESSION');
                 if(!savedSession || !MASTER_DATA.usersList) return;
-
                 const currentUser = JSON.parse(savedSession);
                 const userGroup = String(currentUser.nhomphutrach).trim();
-
-                // 1. Lọc ra danh sách nhân sự nằm trong cùng một nhóm phụ trách
                 const groupMembers = MASTER_DATA.usersList.filter(u => {
                     return String(u.nhomphutrach).replace(/\D/g, "").trim() === userGroup;
                 });
-
                 if (groupMembers.length === 0) return;
-
-                // Các chuỗi chức danh đại diện cho vai trò Chỉ Huy (đã làm sạch viết thường)
                 const leaderTitles = ["doi pho", "to truong", "to pho", "truong nhom"];
-
-                // 2. Tìm kiếm người đóng vai trò Chỉ huy trực tiếp trong nhóm
                 let leaderObj = groupMembers.find(u => {
                     const title = String(u.chucdanh).toLowerCase().trim();
                     return leaderTitles.some(t => title.includes(t));
                 });
-
                 const leaderName = leaderObj ? leaderObj.hovaten : groupMembers[0].hovaten;
-
-                // 3. Gom toàn bộ danh sách thành viên còn lại làm Công nhân đi cùng
-                const workersNames = groupMembers
-                    .filter(u => u.hovaten !== leaderName)
-                    .map(u => u.hovaten);
-
-                // 4. Đổ dữ liệu trực tiếp lên Form Tab 1 công tác
-                const txtChiHuy = document.getElementById('txtChiHuy');
-                const txtCongNhan = document.getElementById('txtCongNhan');
-
-                if (txtChiHuy) txtChiHuy.value = leaderName;
-                if (txtCongNhan) txtCongNhan.value = workersNames.join(", "); 
-
-            } catch (e) { console.error("Lỗi tự điền thành viên nhóm: ", e); }
+                const workersNames = groupMembers.filter(u => u.hovaten !== leaderName).map(u => u.hovaten);
+                const txtChiHuy = document.getElementById('txtChiHuy'); const txtCongNhan = document.getElementById('txtCongNhan');
+                if (txtChiHuy) txtChiHuy.value = leaderName; if (txtCongNhan) txtCongNhan.value = workersNames.join(", "); 
+            } catch (e) { console.error(e); }
         }
 
         function renderLinesDropdownFiltered() {
-            const select = document.getElementById('selectDuongDay');
-            if(!select) return; select.innerHTML = '<option value="">-- Chọn tuyến dây kiểm tra --</option>';
-            const savedSession = localStorage.getItem('VDC_USER_SESSION');
-            if(!savedSession || !MASTER_DATA.lines) return;
-            
-            const currentUser = JSON.parse(savedSession);
-            const userGroup = String(currentUser.nhomphutrach).trim(); 
-
+            const select = document.getElementById('selectDuongDay'); if(!select) return; select.innerHTML = '<option value="">-- Chọn tuyến dây kiểm tra --</option>';
+            const savedSession = localStorage.getItem('VDC_USER_SESSION'); if(!savedSession || !MASTER_DATA.lines) return;
+            const currentUser = JSON.parse(savedSession); const userGroup = String(currentUser.nhomphutrach).trim(); 
             MASTER_DATA.lines.forEach(line => {
                 const lineGroup = String(line.nhomphutrach).replace(/\D/g, "").trim();
-                if (lineGroup === userGroup) {
-                    select.innerHTML += `<option value="${line.maduongday}">${line.tenduongday}</option>`;
-                }
+                if (lineGroup === userGroup) { select.innerHTML += `<option value="${line.maduongday}">${line.tenduongday}</option>`; }
             });
             if (select.options.length <= 1) select.innerHTML = '<option value="">-- Chưa được gán tuyến trên Sheet --</option>';
         }
 
         function loadTowersForLine() {
-            const maDuongDay = document.getElementById('selectDuongDay').value;
-            if(!MASTER_DATA.lines) return;
+            const maDuongDay = document.getElementById('selectDuongDay').value; if(!MASTER_DATA.lines) return;
             const lineObj = MASTER_DATA.lines.find(l => l.maduongday === maDuongDay);
-            const txtChungTru = document.getElementById('txtChungTru');
-            if(txtChungTru) txtChungTru.value = lineObj ? lineObj.chungtru_macdinh : '';
+            const txtChungTru = document.getElementById('txtChungTru'); if(txtChungTru) txtChungTru.value = lineObj ? lineObj.chungtru_macdinh : '';
         }
 
-        function startInspection() {
-            try {
-                const maDuongDay = document.getElementById('selectDuongDay').value;
-                const chiHuy = document.getElementById('txtChiHuy').value.trim();
-                if(!maDuongDay || !chiHuy) return alert("Vui lòng chọn tuyến dây và nhập tên Chỉ huy!");
-
-                let lineObj = { tenduongday: "Tuyến đường dây" };
-                if (MASTER_DATA.lines) {
-                    const found = MASTER_DATA.lines.find(l => String(l.maduongday).trim() === String(maDuongDay).trim());
-                    if (found) lineObj = found;
+        // =======================================================
+        // THUẬT TOÁN XỬ LÝ DANH MỤC KIỂM TRA 2 CẤP ĐỘNG TỪ GOOGLE SHEET
+        // =======================================================
+        
+        // 1. Hàm nạp danh sách các Hạng mục chính (Cột 2) không trùng lặp
+        function renderHangMucChinhDropdown() {
+            const selectChinh = document.getElementById('selectHangMucChinh');
+            if (!selectChinh || !MASTER_DATA.checkCatalog) return;
+            
+            selectChinh.innerHTML = "";
+            let uniqueCategories = [];
+            
+            MASTER_DATA.checkCatalog.forEach(item => {
+                var tenChinh = item.hangmuchinh;
+                if (tenChinh && !uniqueCategories.includes(tenChinh)) {
+                    uniqueCategories.push(tenChinh);
+                    selectChinh.innerHTML += `<option value="${tenChinh}">${tenChinh}</option>`;
                 }
-                
-                CURRENT_INSPECTION.idPhieu = `${Math.floor(100 + Math.random() * 900)}/2026/LINE-QLDD`;
-                CURRENT_INSPECTION.maDuongDay = maDuongDay;
-                CURRENT_INSPECTION.thoiGianBD = new Date().toISOString();
-                CURRENT_INSPECTION.danhSachGhiNhan = [];
-
-                document.getElementById('inspectingLine').innerText = lineObj.tenduongday;
-                alert(`Đã lập Số phiếu định kỳ thành công: ${CURRENT_INSPECTION.idPhieu}`);
-
-                renderTowerCheckboxes(maDuongDay); switchTabCustom(2);
-            } catch(e) { alert("Lỗi: " + e.message); }
-        }
-
-        function renderTowerCheckboxes(maDuongDay) {
-            const container = document.getElementById('towerContainer'); if(!container) return; container.innerHTML = "";
-            if(!MASTER_DATA.towers) return;
-            const towers = MASTER_DATA.towers.filter(t => String(t.maduongday).trim() === String(maDuongDay).trim());
-            if(towers.length === 0) {
-                container.innerHTML = '<div class="text-danger small p-2 w-100 text-center">Không thấy dữ liệu trụ tháp.</div>'; return;
-            }
-            towers.sort((a,b) => Number(a.thutusapxep) - Number(b.thutusapxep));
-            towers.forEach(t => {
-                container.innerHTML += `
-                    <div class="col-4 col-sm-3">
-                        <input type="radio" name="rad_tower" value="${t.mavitri}" data-name="${t.tentruhienthi}" id="t_${t.mavitri}" class="tower-btn-check">
-                        <label class="tower-label-box" for="t_${t.mavitri}">${t.tentruhienthi}</label>
-                    </div>`;
             });
+            
+            // Tự động gọi kích hoạt nạp luôn tầng con ứng với mục đầu tiên
+            updateHangMucConDropdown();
         }
 
-        const DANH_MUC_LOI = {
-            "I": [{ ma: "1a", text: "1a./ Cây trong hành lang vi phạm khoảng cách", moTa: "Cây xanh vi phạm khoảng cách an toàn hành lang", bienPhap: "Chặt tỉa cây bảo đảm hành lang tuyến", phanLoai: "XỬ LÝ KHI KIỂM TRA" }],
-            "II": [
-                { ma: "3d", text: "3d./ Biển số trụ/tên tuyến mờ, bong tróc", moTa: "Biển số trụ không đúng thực tế, mờ, biển tên tuyến mờ", bienPhap: "Điều chỉnh lại số trụ, Sơn, Thay thế biển số trụ", phanLoai: "TIẾP TỤC THEO DÕI" },
-                { ma: "4g", text: "4g./ Sơn trắng đỏ cảnh báo giao thông bị mờ", moTa: "Sơn trắng đỏ cảnh báo giao thông bị mờ", bienPhap: "Lập phương án SCTX tự thực hiện sơn lại màu trắng đỏ", phanLoai: "TIẾP TỤC THEO DÕI" }
-            ],
-            "III": [{ ma: "6c", text: "6c./ Cách điện bị bể, nứt vỡ bát sứ", moTa: "Bể vỡ bát sứ chuỗi cách điện pha", bienPhap: "Lập phương án thay sứ bể khi công tác cắt điện", phanLoai: "XỬ LÝ KHI CÁT ĐIỆN" }],
-            "IV": [{ ma: "8a", text: "8a./ Công trình phát sinh xây dựng trong hành lang", moTa: "Công trình xây dựng phát sinh sát hành lang bảo vệ", bienPhap: "Lập biên bản vi phạm hành lang an toàn lưới điện", phanLoai: "XỬ LÝ KHI KIỂM TRA" }]
-        };
-
+        // 2. Hàm nạp danh sách Hạng mục kiểm tra chi tiết (Cột 3) theo bộ lọc phân tầng
         function updateHangMucConDropdown() {
-            const selectChinh = document.getElementById('selectHangMucChinh'); const selectCon = document.getElementById('selectHangMucCon');
-            if(!selectChinh || !selectCon) return;
-            const codeChinh = selectChinh.value; selectCon.innerHTML = "";
-            if(DANH_MUC_LOI[codeChinh]) {
-                DANH_MUC_LOI[codeChinh].forEach(item => { selectCon.innerHTML += `<option value="${item.ma}">${item.text}</option>`; });
-                autoFillErrorDetails();
-            }
+            const selectChinh = document.getElementById('selectHangMucChinh');
+            const selectCon = document.getElementById('selectHangMucCon');
+            if (!selectChinh || !selectCon || !MASTER_DATA.checkCatalog) return;
+
+            const selectedCategory = selectChinh.value;
+            selectCon.innerHTML = "";
+            
+            // Lọc ra các dòng con có giá trị cột hangmuchinh trùng khớp với mục lớn đang chọn
+            const subCategories = MASTER_DATA.checkCatalog.filter(item => item.hangmuchinh === selectedCategory);
+            
+            subCategories.forEach(sub => {
+                if (sub.hangmuckiemtra) {
+                    selectCon.innerHTML += `<option value="${sub.hangmuckiemtra}">${sub.hangmuckiemtra}</option>`;
+                }
+            });
+            
+            // Kích hoạt tự động điền Text mô tả chi tiết ra màn hình nền
+            autoFillErrorDetails();
         }
 
+        // 3. Hàm tự điền dữ liệu chữ mẫu vào khung nhập để anh em không phải gõ tay
         function autoFillErrorDetails() {
-            const selectChinh = document.getElementById('selectHangMucChinh'); const selectCon = document.getElementById('selectHangMucCon');
-            if (!selectChinh || !selectCon || document.getElementById('dynamicCatalogContainer').classList.contains('d-none')) return;
-            const codeChinh = selectChinh.value; const codeCon = selectCon.value;
-            if (DANH_MUC_LOI[codeChinh]) {
-                const item = DANH_MUC_LOI[codeChinh].find(i => i.ma === codeCon);
-                if (item) {
-                    const txtMoTa = document.getElementById('txtMoTaLoi'); const txtBienPhap = document.getElementById('txtBienPhap'); const selectPhanLoai = document.getElementById('selectPhanLoai');
-                    if (txtMoTa) txtMoTa.value = item.moTa; if (txtBienPhap) txtBienPhap.value = item.bienPhap; if (selectPhanLoai) selectPhanLoai.value = item.phanLoai;
-                }
+            const selectCon = document.getElementById('selectHangMucCon');
+            const txtMoTa = document.getElementById('txtMoTaLoi');
+            const txtBienPhap = document.getElementById('txtBienPhap');
+            
+            // Nếu khung đang ẩn (Bình thường), chặn đứng hàm để chống lỗi null
+            if (!selectCon || document.getElementById('dynamicCatalogContainer').classList.contains('d-none')) return;
+
+            const selectedValue = selectCon.value;
+            if (!selectedValue) return;
+
+            // Bốc tách lấy nội dung chi tiết (bỏ qua phần mã chữ số đầu dòng nếu cần thiết)
+            if (txtMoTa) txtMoTa.value = selectedValue;
+            
+            // Gợi ý phương án xử lý tương đối dựa theo cụm từ khóa kỹ thuật
+            if (txtBienPhap) {
+                const valLower = selectedValue.toLowerCase();
+                if (valLower.includes("cay")) txtBienPhap.value = "Chặt tỉa cây bảo đảm khoảng cách an toàn hành lang";
+                else if (valLower.includes("bien bao") || valLower.includes("son")) txtBienPhap.value = "Sơn lại, điều chỉnh lại biển số trụ, biển báo nguy hiểm";
+                else if (valLower.includes("cach dien") || valLower.includes("su")) txtBienPhap.value = "Lập phương án thi công thay sứ vỡ khi cắt điện";
+                else if (valLower.includes("mong") || valLower.includes("dat")) txtBienPhap.value = "Gia cố, theo dõi hiện trạng công tác sạt lở";
+                else txtBienPhap.value = "Lập phương án xử lý sửa chữa thường xuyên";
             }
         }
 
@@ -429,15 +415,33 @@
             } else {
                 if(catalogContainer) catalogContainer.classList.remove('d-none');
                 if(labelCamera) labelCamera.innerHTML = '<i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp hình chi tiết biến cố lỗi tồn tại (Tối thiểu 1 ảnh)';
-                updateHangMucConDropdown();
+                renderHangMucChinhDropdown(); // Tải động từ điển lỗi khi công nhân chọn Bất thường
             }
             CURRENT_CAPTURED_PHOTOS = []; const grid = document.getElementById('photoPreviewGrid'); if(grid) grid.innerHTML = "";
         }
 
+        function startInspection() {
+            try {
+                const maDuongDay = document.getElementById('selectDuongDay').value; const chiHuy = document.getElementById('txtChiHuy').value.trim();
+                if(!maDuongDay || !chiHuy) return alert("Vui lòng chọn tuyến dây và nhập tên Chỉ huy!");
+                let lineObj = { tenduongday: "Tuyến đường dây" }; if (MASTER_DATA.lines) { const found = MASTER_DATA.lines.find(l => String(l.maduongday).trim() === String(maDuongDay).trim()); if (found) lineObj = found; }
+                CURRENT_INSPECTION.idPhieu = `${Math.floor(100 + Math.random() * 900)}/2026/LINE-QLDD`; CURRENT_INSPECTION.maDuongDay = maDuongDay; CURRENT_INSPECTION.thoiGianBD = new Date().toISOString(); CURRENT_INSPECTION.danhSachGhiNhan = [];
+                document.getElementById('inspectingLine').innerText = lineObj.tenduongday; alert(`Đã lập Số phiếu định kỳ thành công: ${CURRENT_INSPECTION.idPhieu}`);
+                renderTowerCheckboxes(maDuongDay); switchTabCustom(2);
+            } catch(e) { alert("Lỗi: " + e.message); }
+        }
+
+        function renderTowerCheckboxes(maDuongDay) {
+            const container = document.getElementById('towerContainer'); if(!container) return; container.innerHTML = ""; if(!MASTER_DATA.towers) return;
+            const towers = MASTER_DATA.towers.filter(t => String(t.maduongday).trim() === String(maDuongDay).trim());
+            if(towers.length === 0) { container.innerHTML = '<div class="text-danger small p-2 w-100 text-center">Không thấy dữ liệu trụ tháp.</div>'; return; }
+            towers.sort((a,b) => Number(a.thutusapxep) - Number(b.thutusapxep));
+            towers.forEach(t => { container.innerHTML += `<div class="col-4 col-sm-3"><input type="radio" name="rad_tower" value="${t.mavitri}" data-name="${t.tentruhienthi}" id="t_${t.mavitri}" class="tower-btn-check"><label class="tower-label-box" for="t_${t.mavitri}">${t.tentruhienthi}</label></div>`; });
+        }
+
         function handleCameraCapture(input) {
             if (input.files && input.files[0]) {
-                const radTower = document.querySelector('input[name="rad_tower"]:checked');
-                if (!radTower) { alert("LỖI BẮT BUỘC: Anh phải chọn Trụ kiểm tra ở Bước 1 trước khi chụp hình!"); input.value = ""; return; }
+                const radTower = document.querySelector('input[name="rad_tower"]:checked'); if (!radTower) { alert("LỖI BẮT BUỘC: Anh phải chọn Trụ kiểm tra ở Bước 1 trước!"); input.value = ""; return; }
                 const maViTriTru = radTower.value; const now = new Date();
                 const timestamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + "_" + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
                 const dinhDangTenFile = `${maViTriTru}_${timestamp}.jpg`;
@@ -445,10 +449,8 @@
                 reader.onload = function(e) {
                     const img = new Image(); img.src = e.target.result;
                     img.onload = function() {
-                        const canvasImg = document.createElement('canvas'); const ctxImg = canvasImg.getContext('2d');
-                        const max_width = 800; const scale = max_width / img.width; canvasImg.width = max_width; canvasImg.height = img.height * scale;
-                        ctxImg.drawImage(img, 0, 0, canvasImg.width, canvasImg.height);
-                        const compressedBase64 = canvasImg.toDataURL("image/jpeg", 0.75);
+                        const canvasImg = document.createElement('canvas'); const ctxImg = canvasImg.getContext('2d'); const max_width = 800; const scale = max_width / img.width; canvasImg.width = max_width; canvasImg.height = img.height * scale;
+                        ctxImg.drawImage(img, 0, 0, canvasImg.width, canvasImg.height); const compressedBase64 = canvasImg.toDataURL("image/jpeg", 0.75);
                         CURRENT_CAPTURED_PHOTOS.push({ tenFile: dinhDangTenFile, base64Data: compressedBase64 }); renderPhotoPreviewGrid();
                     }
                 }
@@ -468,19 +470,22 @@
             const radTower = document.querySelector('input[name="rad_tower"]:checked'); if(!radTower) return alert("LỖI: Chưa chọn vị trí Trụ điện kiểm tra!");
             const isNormal = parseInt(document.querySelector('input[name="radStatus"]:checked').value);
             if(isNormal === 1 && CURRENT_CAPTURED_PHOTOS.length < 2) return alert("LỖI BẮT BUỘC: Vị trí Bình thường yêu cầu chụp đủ ít nhất 2 tấm hình (Gốc & Ngọn)!");
-            if(isNormal === 0 && CURRENT_CAPTURED_PHOTOS.length < 1) return alert("LỖI BẮT BUỘC: Khai báo Bất thường yêu cầu chụp nhất 1 hình ảnh chi tiết tồn tại!");
+            if(isNormal === 0 && CURRENT_CAPTURED_PHOTOS.length < 1) return alert("LỖI BẮT BUỘC: Khai báo Bất thường yêu cầu chụp ít nhất 1 hình ảnh chi tiết tồn tại!");
 
+            // Nếu bình thường, hạng mục con mặc định trả về chuỗi OK
             const codeCon = isNormal === 1 ? "OK" : document.getElementById('selectHangMucCon').value;
             const moTa = isNormal === 1 ? "Vận hành bình thường" : document.getElementById('txtMoTaLoi').value;
             const bienPhap = isNormal === 1 ? "Tiếp tục vận hành thường xuyên" : document.getElementById('txtBienPhap').value;
             const phanLoai = isNormal === 1 ? "THEO DÕI" : document.getElementById('selectPhanLoai').value;
 
-            CURRENT_INSPECTION.danhSachGhiNhan.push({ maViTri: radTower.value, tenTruHienThi: radTower.getAttribute('data-name'), maHangMucCon: codeCon, tinhTrang: isNormal, moTaLoi: moTa, bienPhapXL: bienPhap, phanLoai: phanLoai, hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS] });
+            CURRENT_INSPECTION.danhSachGhiNhan.push({ maViTri: radTower.value, tenTruHienThi: radTower.getAttribute('data-name'), maHangMucCon: codeCon.substring(0, 15), tinhTrang: isNormal, moTaLoi: moTa, bienPhapXL: bienPhap, phanLoai: phanLoai, hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS] });
+            
             radTower.checked = false; CURRENT_CAPTURED_PHOTOS = [];
             const grid = document.getElementById('photoPreviewGrid'); if(grid) grid.innerHTML = "";
             const camInput = document.getElementById('cameraInput'); if(camInput) camInput.value = "";
             const txtMoTa = document.getElementById('txtMoTaLoi'); if(txtMoTa) txtMoTa.value = "";
             const txtBienPhap = document.getElementById('txtBienPhap'); if(txtBienPhap) txtBienPhap.value = "";
+            
             alert("Đã ghi nhận dữ liệu vị trí trụ thành công!"); updateLocalTable();
         }
 
@@ -491,25 +496,14 @@
             tbody.innerHTML = "";
             CURRENT_INSPECTION.danhSachGhiNhan.forEach(rec => {
                 const statusBadge = rec.tinhTrang === 1 ? '<span class="badge bg-success">Bình thường</span>' : '<span class="badge bg-danger">Bất thường</span>';
-                tbody.innerHTML += `<tr><td class="fw-bold">${rec.tenTruHienThi}</td><td>${rec.maHangMucCon}</td><td>${statusBadge}</td></tr>`;
+                tbody.innerHTML += `<tr><td class="fw-bold">${rec.tenTruHienThi}</td><td class="text-truncate" style="max-width:140px;">${rec.maHangMucCon}</td><td>${statusBadge}</td></tr>`;
             });
         }
-
-        function getCanvasPos(e) { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; }
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        canvas.addEventListener('mouseup', () => isDrawing = false);
-        canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
-        canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
-        canvas.addEventListener('touchend', () => isDrawing = false);
-        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
         function syncDataToServer() {
             if(CURRENT_INSPECTION.danhSachGhiNhan.length === 0) return alert("Chưa ghi nhận vị trí trụ nào!");
             if(!navigator.onLine) return alert("Thiết bị mất mạng Internet. Không thể đồng bộ!");
-            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đồng bộ...';
-            document.getElementById('btnSync').disabled = true;
-
+            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đồng bộ...'; document.getElementById('btnSync').disabled = true;
             const payload = {
                 action: "syncphieu", idPhieu: CURRENT_INSPECTION.idPhieu, maDuongDay: CURRENT_INSPECTION.maDuongDay, thoiGianBD: CURRENT_INSPECTION.thoiGianBD, thoiGianKT: new Date().toISOString(),
                 chiHuyTT: document.getElementById('txtChiHuy').value, congNhan: document.getElementById('txtCongNhan').value, nhanXetChung: document.getElementById('txtNhanXetChung').value, chuKyNhom: canvas.toDataURL("image/png"), danhSachGhiNhan: CURRENT_INSPECTION.danhSachGhiNhan
