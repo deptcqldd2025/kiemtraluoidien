@@ -357,23 +357,44 @@ function startInspection() {
         }
 
         function updateHangMucConDropdown() {
-            const codeChinh = document.getElementById('selectHangMucChinh').value;
+            // Kiểm tra xem các thẻ select có tồn tại trên giao diện không
+            const selectChinh = document.getElementById('selectHangMucChinh');
             const selectCon = document.getElementById('selectHangMucCon');
+            if (!selectChinh || !selectCon) return; // Nếu chưa hiện (đang ở chế độ Bình Thường) thì dừng lại ngay
+        
+            const codeChinh = selectChinh.value;
             selectCon.innerHTML = "";
-            DANH_MUC_LOI[codeChinh].forEach(item => {
-                selectCon.innerHTML += `<option value="${item.ma}">${item.text}</option>`;
-            });
-            autoFillErrorDetails();
+            
+            if (DANH_MUC_LOI[codeChinh]) {
+                DANH_MUC_LOI[codeChinh].forEach(item => {
+                    selectCon.innerHTML += `<option value="${item.ma}">${item.text}</option>`;
+                });
+                // Chỉ tự động điền chữ nếu ô text thực sự có trên màn hình
+                autoFillErrorDetails();
+            }
         }
 
         function autoFillErrorDetails() {
-            const codeChinh = document.getElementById('selectHangMucChinh').value;
-            const codeCon = document.getElementById('selectHangMucCon').value;
-            const item = DANH_MUC_LOI[codeChinh].find(i => i.ma === codeCon);
-            if(item) {
-                document.getElementById('txtMoTaLoi').value = item.moTa;
-                document.getElementById('txtBienPhap').value = item.bienPhap;
-                document.getElementById('selectPhanLoai').value = item.phanLoai;
+            const selectChinh = document.getElementById('selectHangMucChinh');
+            const selectCon = document.getElementById('selectHangMucCon');
+            // Nếu app đang ẩn các ô này (chế độ Bình Thường), thoát hàm ngay lập tức
+            if (!selectChinh || !selectCon || selectChinh.offsetParent === null) return; 
+        
+            const codeChinh = selectChinh.value;
+            const codeCon = selectCon.value;
+            
+            if (DANH_MUC_LOI[codeChinh]) {
+                const item = DANH_MUC_LOI[codeChinh].find(i => i.ma === codeCon);
+                if (item) {
+                    const txtMoTa = document.getElementById('txtMoTaLoi');
+                    const txtBienPhap = document.getElementById('txtBienPhap');
+                    const selectPhanLoai = document.getElementById('selectPhanLoai');
+                    
+                    // Chỉ gán giá trị VALUE khi và chỉ khi tìm thấy thẻ HTML tồn tại công khai
+                    if (txtMoTa) txtMoTa.value = item.moTa;
+                    if (txtBienPhap) txtBienPhap.value = item.bienPhap;
+                    if (selectPhanLoai) selectPhanLoai.value = item.phanLoai;
+                }
             }
         }
 
