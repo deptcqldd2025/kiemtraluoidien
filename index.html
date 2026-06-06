@@ -191,25 +191,51 @@
             ctx.scale(ratio, ratio); ctx.strokeStyle = "#0000ff"; ctx.lineWidth = 2.5;
         }
 
+        // HÀM ĐĂNG NHẬP ĐÃ ĐƯỢC VÁ LỖI CHỐNG TREO XOAY VÒNG VÔ HẠN
         function login() {
             const account = document.getElementById('loginAccount').value.trim();
             const pass = document.getElementById('loginPassword').value.trim();
             if(!account || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
-
+        
             const btn = document.getElementById('btnLogin');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang kết nối máy chủ...'; btn.disabled = true;
-
-            fetch(`${APPS_SCRIPT_URL}?action=loginapp&account=${account}&password=${pass}`)
-                .then(res => res.json())
-                .then(resData => {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang kết nối máy chủ...'; 
+            btn.disabled = true;
+        
+            // Bộ đếm thời gian tự hủy (Timeout) sau 8 giây để chặn đứng hiện tượng quay hoài
+            const abortTimeout = setTimeout(() => {
+                if (btn.disabled) {
                     btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    alert("LỖI KẾT NỐI QUÁ HẠN:\n1. Anh vui lòng kiểm tra mạng 3G/4G trên điện thoại.\n2. Hãy chắc chắn anh đã cấu hình quyền 'Anyone' (Bất kỳ ai) và chọn 'New Version' khi Triển khai trên Google Apps Script.");
+                }
+            }, 8000);
+        
+            // Kiểm tra định dạng link URL trước khi gửi đi để tránh crash ngầm
+            if (APPS_SCRIPT_URL.includes("NHẬP_ID_MÃ_MÁY_CHỦ") || APPS_SCRIPT_URL === "") {
+                clearTimeout(abortTimeout);
+                btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                return alert("LỖI CẤU HÌNH: Anh Đẹp chưa thay đường dẫn Web App của Google Apps Script vào biến APPS_SCRIPT_URL!");
+            }
+        
+            fetch(`${APPS_SCRIPT_URL}?action=loginapp&account=${account}&password=${pass}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Cổng kết nối Google Sheets phản hồi lỗi HTTP " + res.status);
+                    return res.json();
+                })
+                .then(resData => {
+                    clearTimeout(abortTimeout); // Tắt bộ đếm tự hủy nếu máy chủ phản hồi kịp thời
+                    
                     if(resData.success) {
                         localStorage.setItem('VDC_USER_SESSION', JSON.stringify(resData.user));
                         handleUserSession(resData.user);
-                    } else { alert(resData.message); }
+                    } else { 
+                        btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                        alert("TỪ CHỐI ĐĂNG NHẬP:\n" + resData.message); 
+                    }
                 })
                 .catch(err => {
-                    alert("Lỗi mạng đăng nhập: " + err); btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    clearTimeout(abortTimeout);
+                    btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    alert("LỖI KHÔNG THỂ GỌI API GOOGLE SHEETS:\nChi tiết lỗi: " + err.message + "\n\nAnh hãy kiểm tra lại link APPS_SCRIPT_URL trên file index.html xem đã copy đúng bản Triển khai mới nhất chưa.");
                 });
         }
 
