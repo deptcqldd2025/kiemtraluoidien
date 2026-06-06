@@ -77,7 +77,7 @@
                         <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-folder-open me-1"></i> KHAI BÁO HÀNH CHÍNH SƠ BỘ</div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary">Tên tuyến đường dây cần kiểm tra</label>
-                            <select id="selectDuongDay" class="form-select text-truncate" onchange="loadTowersForLine()"><option value="">-- Đang nạp dữ liệu nhóm --</option></select>
+                            <select id="selectDuongDay" class="form-select text-truncate" onchange="loadTowersForLine()"><option value="">-- Đang nạp danh mục --</option></select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary">Tuyến đi chung trụ</label>
@@ -85,11 +85,11 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary">Chỉ Huy Trực Tiếp</label>
-                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Tự động điền Trưởng nhóm/Đội phó" readonly>
+                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Đang tải dữ liệu Chỉ huy..." readonly>
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-secondary">Danh sách công nhân đi cùng</label>
-                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Tự động điền các thành viên nhóm">
+                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Đang tải danh sách công nhân...">
                         </div>
                         <button class="btn btn-success w-100 py-3 fw-bold rounded-3" onclick="startInspection()"><i class="fa-solid fa-shoe-prints me-2"></i>BẮT ĐẦU ĐI DỌC TUYẾN</button>
                     </div>
@@ -105,7 +105,7 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-danger"><i class="fa-solid fa-bullseye me-1"></i> Bước 1: Chọn vị trí Trụ kiểm tra:</label>
                             <div id="towerContainer" class="row gx-2 gy-2 p-2 rounded-3 bg-light border" style="max-height: 140px; overflow-y: auto;">
-                                <div class="text-muted text-center py-3 small">Hãy hoàn thành Tab 1 để gọi danh sách trụ.</div>
+                                <div class="text-muted text-center py-3 small">Vui lòng chọn xong Tuyến dây ở Tab 1.</div>
                             </div>
                         </div>
 
@@ -127,17 +127,17 @@
                                     <select id="selectHangMucChinh" class="form-select form-select-sm" onchange="updateHangMucConDropdown()"></select>
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label small fw-bold text-secondary">Chọn Hạng mục chi tiết (Cột Hangmuckiemtra)</label>
+                                    <label class="form-label small fw-bold text-secondary">Chọn Hạng mục kiểm tra chi tiết (Cột Hangmuckiemtra)</label>
                                     <select id="selectHangMucCon" class="form-select form-select-sm" onchange="autoFillErrorDetails()"></select>
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-danger">Tình trạng bất thường cụ thể</label>
-                                    <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" placeholder="Nhập mô tả lỗi">
+                                    <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" placeholder="Mô tả hiện trạng">
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small fw-bold text-secondary">Biện pháp đề xuất & Phân loại</label>
                                     <div class="row g-2">
-                                        <div class="col-7"><input type="text" id="txtBienPhap" class="form-control form-control-sm" placeholder="Biện pháp xử lý"></div>
+                                        <div class="col-7"><input type="text" id="txtBienPhap" class="form-control form-control-sm" placeholder="Biện pháp đề xuất"></div>
                                         <div class="col-5">
                                             <select id="selectPhanLoai" class="form-select form-select-sm fw-bold text-danger">
                                                 <option value="TIẾP TỤC THEO DÕI">THEO DÕI</option>
@@ -190,6 +190,8 @@
     </div>
 
     <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
+
         let MASTER_DATA = { lines: [], towers: [], usersList: [], checkCatalog: [] };
         let CURRENT_INSPECTION = { idPhieu: '', maDuongDay: '', thoiGianBD: '', danhSachGhiNhan: [] };
         let CURRENT_CAPTURED_PHOTOS = [];
@@ -223,26 +225,38 @@
             badge.innerHTML = isOnline ? '<i class="fa-solid fa-wifi me-1"></i>Online' : '<i class="fa-solid fa-wifi-slash me-1"></i>Offline';
         }
 
+        // VÁ LỖI TREO: Đăng nhập an toàn, có bộ đếm tự hủy Timeout chống đứng màn hình
         function login() {
             const account = document.getElementById('loginAccount').value.trim();
             const pass = document.getElementById('loginPassword').value.trim();
             if(!account || !pass) return alert("Vui lòng điền đầy đủ thông tin!");
 
             const btn = document.getElementById('btnLogin');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...'; btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực máy chủ...'; btn.disabled = true;
+
+            const abortTimeout = setTimeout(() => {
+                if (btn.disabled) {
+                    btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    alert("LỖI KẾT NỐI: Thời gian tải dữ liệu quá lâu. Vui lòng rà soát lại quyền truy cập Anyone trên Google Apps Script!");
+                }
+            }, 12000);
 
             fetch(`${APPS_SCRIPT_URL}?action=loginapp&account=${account}&password=${pass}`)
                 .then(res => res.json())
                 .then(resData => {
-                    btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    clearTimeout(abortTimeout);
                     if(resData.success) {
                         localStorage.setItem('VDC_USER_SESSION', JSON.stringify(resData.user));
                         handleUserSession(resData.user);
-                    } else { alert(resData.message); }
+                    } else { 
+                        btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                        alert(resData.message); 
+                    }
                 })
                 .catch(err => {
-                    alert("Lỗi kết nối API Google Sheets: " + err); 
+                    clearTimeout(abortTimeout);
                     btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
+                    alert("Lỗi đồng bộ API: " + err);
                 });
         }
 
@@ -273,7 +287,7 @@
                     renderHangMucChinhDropdown();
                 })
                 .catch(err => {
-                    console.warn("Lỗi mạng, nạp cache offline:", err);
+                    console.warn("Lọc offline:", err);
                     const cached = localStorage.getItem('VDC_MASTER_DATA');
                     if(cached) { 
                         MASTER_DATA = JSON.parse(cached); 
@@ -284,7 +298,7 @@
                 });
         }
 
-        // THUẬT TOÁN TỰ ĐỘNG PHÂN TÁCH ĐỘI HÌNH THEO TIÊU CHUẨN CỘT THƯỜNG LIỀN KHÔNG DẤU
+        // VÁ LỖI TREO: Hàm bốc tách chức danh và gom nhóm công tác viết thường chuẩn 100%
         function autoFillTeamMembersByChucDanh() {
             try {
                 const savedSession = localStorage.getItem('VDC_USER_SESSION');
@@ -300,13 +314,12 @@
 
                 if (groupMembers.length === 0) return;
 
-                const leaderTitles = ["doi pho", "to truong", "to pho", "truong nhom"];
+                const leaderTitles = ["đội phó", "tổ trưởng", "tổ phó", "trưởng nhóm", "doi pho", "to truong", "to pho", "truong nhom"];
 
                 let leaderObj = groupMembers.find(u => {
                     if(!u.chucdanh) return false;
-                    const title = String(u.chucdanh).toLowerCase().trim()
-                        .replace(/ộ|ớ|ổ/g, "o").replace(/ư|ở/g, "u").replace(/đ/g, "d").replace(/\s+/g, "");
-                    return leaderTitles.some(t => title.includes(t.replace(/\s+/g, "")));
+                    const title = String(u.chucdanh).toLowerCase().trim();
+                    return leaderTitles.some(t => title.includes(t));
                 });
 
                 const leaderName = leaderObj ? leaderObj.hovaten : groupMembers[0].hovaten;
@@ -317,7 +330,7 @@
 
                 if (txtChiHuy) txtChiHuy.value = leaderName;
                 if (txtCongNhan) txtCongNhan.value = workersNames.join(", "); 
-            } catch (e) { console.error("Lỗi điền đội hình: ", e); }
+            } catch (e) { console.error("Lỗi điền nhóm: ", e); }
         }
 
         function renderLinesDropdownFiltered() {
@@ -369,11 +382,11 @@
             if (txtMoTa) txtMoTa.value = selectedValue;
             if (txtBienPhap) {
                 const valLower = selectedValue.toLowerCase();
-                if (valLower.includes("cay")) txtBienPhap.value = "Chặt tỉa cây bảo đảm khoảng cách an toàn hành lang";
-                else if (valLower.includes("bien bao") || valLower.includes("son")) txtBienPhap.value = "Sơn lại, thay mới biển số tháp, biển tên tuyến mờ";
-                else if (valLower.includes("cach dien") || valLower.includes("su")) txtBienPhap.value = "Lập phương án thay thế bát sứ vỡ khi công tác cắt điện";
-                else if (valLower.includes("mong") || valLower.includes("dat")) txtBienPhap.value = "Gia cố móng chân tháp, rà soát xử lý sạt lở đất";
-                else txtBienPhap.value = "Lập phương án tổ chức sửa chữa thường xuyên";
+                if (valLower.includes("cây") || valLower.includes("cay")) txtBienPhap.value = "Chặt tỉa cây bảo đảm khoảng cách an toàn hành lang";
+                else if (valLower.includes("biển") || valLower.includes("sơn")) txtBienPhap.value = "Sơn lại, thay mới biển số tháp mờ, biển tên tuyến rỉ sét";
+                else if (valLower.includes("cách điện") || valLower.includes("sứ")) txtBienPhap.value = "Lập phương án thay thế bát sứ vỡ khi công tác cắt điện";
+                else if (valLower.includes("móng") || valLower.includes("đất")) txtBienPhap.value = "Gia cố móng chân tháp, rà soát xử lý sạt lở địa hình quanh trụ";
+                else txtBienPhap.value = "Lập phương án tổ chức sửa chữa thường xuyên SCL 2026";
             }
         }
 
@@ -411,7 +424,7 @@
 
         function handleCameraCapture(input) {
             if (input.files && input.files[0]) {
-                const radTower = document.querySelector('input[name="rad_tower"]:checked'); if (!radTower) { alert("LỖI BẮT BUỘC: Anh phải chọn Trụ kiểm tra trước!"); input.value = ""; return; }
+                const radTower = document.querySelector('input[name="rad_tower"]:checked'); if (!radTower) { alert("LỖI BẮT BUỘC: Anh phải chọn Trụ kiểm tra ở Bước 1 trước!"); input.value = ""; return; }
                 const maViTriTru = radTower.value; const now = new Date();
                 const timestamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + "_" + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
                 const dinhDangTenFile = `${maViTriTru}_${timestamp}.jpg`;
@@ -447,7 +460,7 @@
             const bienPhap = isNormal === 1 ? "Tiếp tục vận hành thường xuyên" : document.getElementById('txtBienPhap').value;
             const phanLoai = isNormal === 1 ? "THEO DÕI" : document.getElementById('selectPhanLoai').value;
 
-            CURRENT_INSPECTION.danhSachGhiNhan.push({ maViTri: radTower.value, tenTruHienThi: radTower.getAttribute('data-name'), maHangMucCon: codeCon.substring(0, 30), tinhTrang: isNormal, moTaLoi: moTa, bienPhapXL: bienPhap, phanLoai: phanLoai, hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS] });
+            CURRENT_INSPECTION.danhSachGhiNhan.push({ maViTri: radTower.value, tenTruHienThi: radTower.getAttribute('data-name'), maHangMucCon: codeCon.substring(0, 40), tinhTrang: isNormal, moTaLoi: moTa, bienPhapXL: bienPhap, phanLoai: phanLoai, hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS] });
             
             radTower.checked = false; CURRENT_CAPTURED_PHOTOS = [];
             const grid = document.getElementById('photoPreviewGrid'); if(grid) grid.innerHTML = "";
