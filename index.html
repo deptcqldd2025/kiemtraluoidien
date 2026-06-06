@@ -59,7 +59,7 @@
             <h5 class="fw-bold mb-4">HỆ THỐNG KIỂM TRA ĐỊNH KỲ</h5>
             <div class="mb-3 text-start"><div class="form-floating"><input type="text" id="loginAccount" class="form-control" placeholder="deptc"><label>Tài khoản (Account)</label></div></div>
             <div class="mb-4 text-start"><div class="form-floating"><input type="password" id="loginPassword" class="form-control" placeholder="Mật khẩu ứng dụng"><label>Mật khẩu ứng dụng (PassApp)</label></div></div>
-            <button id="btnLogin" class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()">ĐĂNG NHẬP HỆ THỐNG</button>
+            <button id="btnLogin" class="btn btn-primary w-100 py-3 fw-bold rounded-3" onclick="login()"><i class="fa-solid fa-right-to-bracket me-1"></i> ĐĂNG NHẬP HỆ THỐNG</button>
         </div>
 
         <div id="mainSection" class="d-none">
@@ -232,7 +232,8 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...';
             btn.disabled = true;
 
-            fetch(`${APPS_SCRIPT_URL}?action=loginApp&account=${account}&password=${pass}`)
+            // ĐỒNG BỘ: Ép action về chữ thường viết liền "loginapp" trùng khớp với backend GAS
+            fetch(`${APPS_SCRIPT_URL}?action=loginapp&account=${account}&password=${pass}`)
                 .then(res => res.json())
                 .then(resData => {
                     btn.innerHTML = 'ĐĂNG NHẬP HỆ THỐNG'; btn.disabled = false;
@@ -272,12 +273,11 @@
                 if(cached) { MASTER_DATA = JSON.parse(cached); renderLinesDropdownFiltered(); }
                 return;
             }
-            fetch(`${APPS_SCRIPT_URL}?action=getMasterData`).then(res => res.json()).then(data => {
+            fetch(`${APPS_SCRIPT_URL}?action=getmasterdata`).then(res => res.json()).then(data => {
                 MASTER_DATA = data; localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data)); renderLinesDropdownFiltered();
             }).catch(err => console.error("Lỗi:", err));
         }
 
-        // THUẬT TOÁN ĐÃ CẢI TIẾN: Lọc và chỉ hiển thị đường dây thuộc về Nhóm phụ trách của Công nhân
         function renderLinesDropdownFiltered() {
             const select = document.getElementById('selectDuongDay');
             if(!select) return;
@@ -287,20 +287,15 @@
             if(!savedSession || !MASTER_DATA.lines) return;
             
             const currentUser = JSON.parse(savedSession);
-            // Lấy mã số nhóm của User đăng nhập (Ví dụ: "1")
             const userGroup = String(currentUser.Nhomphutrach).trim(); 
 
             MASTER_DATA.lines.forEach(line => {
-                // Chuẩn hóa mã nhóm trong cột Nhomphutrach của sheet đường dây
                 const lineGroup = String(line.Nhomphutrach).replace(/\D/g, "").trim();
-                
-                // So khớp tuyệt đối: Nếu trùng mã nhóm phụ trách mới cho hiển thị lên Dropdown
                 if (lineGroup === userGroup) {
                     select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay} (${line.CapDienAp})</option>`;
                 }
             });
             
-            // Nếu nhóm không có tuyến nào, báo cho công nhân biết
             if (select.options.length <= 1) {
                 select.innerHTML = '<option value="">-- Nhóm của anh chưa được gán tuyến trên Sheet --</option>';
             }
@@ -540,11 +535,11 @@
             if(CURRENT_INSPECTION.danhSachGhiNhan.length === 0) return alert("Chưa ghi nhận vị trí trụ nào!");
             if(!navigator.onLine) return alert("Thiết bị mất mạng Internet. Không thể đồng bộ!");
 
-            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đồng bộ ảnh và phiếu về Google Sheet...';
+            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nén dữ liệu và đồng bộ lên Sheet...';
             document.getElementById('btnSync').disabled = true;
 
             const payload = {
-                action: "syncPhieu",
+                action: "syncphieu", // ĐỒNG BỘ: Chuyển về viết thường khớp hoàn toàn doPost GAS
                 idPhieu: CURRENT_INSPECTION.idPhieu,
                 maDuongDay: CURRENT_INSPECTION.maDuongDay,
                 thoiGianBD: CURRENT_INSPECTION.thoiGianBD,
