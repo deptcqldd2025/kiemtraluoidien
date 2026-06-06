@@ -63,3 +63,445 @@
             </ul>
 
             <div class="tab-content">
+                
+                <div class="tab-pane fade show active" id="initTab">
+                    <div class="card card-field p-3">
+                        <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-folder-open me-1"></i> KHAI BÁO HÀNH CHÍNH SƠ BỘ</div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Tên tuyến đường dây cần kiểm tra</label>
+                            <select id="selectDuongDay" class="form-select text-truncate" onchange="loadTowersForLine()"><option value="">-- Đang nạp nguồn PMIS --</option></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Tuyến đi chung trụ</label>
+                            <input type="text" id="txtChungTru" class="form-control bg-light" placeholder="Hệ thống tự nhận diện" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Chỉ Huy Trực Tiếp</label>
+                            <input type="text" id="txtChiHuy" class="form-control" placeholder="Họ tên Chỉ Huy Trực Tiếp">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary">Danh sách anh em công nhân đi cùng</label>
+                            <input type="text" id="txtCongNhan" class="form-control" placeholder="Nguyễn Minh Hải, Trần Quốc Đạt...">
+                        </div>
+                        <button class="btn btn-success w-100 py-3 fw-bold rounded-3" onclick="startInspection()"><i class="fa-solid fa-shoe-prints me-2"></i>BẮT ĐẦU ĐI DỌC TUYẾN</button>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="checkTab">
+                    <div class="card card-field p-3">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <span class="text-primary fw-bold small"><i class="fa-solid fa-compass me-1"></i> NHẬT KÝ KIỂM TRA HIỆN TRƯỜNG</span>
+                            <span id="inspectingLine" class="badge bg-secondary p-2 text-truncate" style="max-width: 150px;">Chưa chọn tuyến</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-danger"><i class="fa-solid fa-bullseye me-1"></i> Bước 1: Chọn vị trí Trụ kiểm tra:</label>
+                            <div id="towerContainer" class="row gx-2 gy-2 p-2 rounded-3 bg-light border" style="max-height: 140px; overflow-y: auto;">
+                                <div class="text-muted text-center py-3 small">Vui lòng hoàn thành Tab 1 để gọi danh sách trụ.</div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 border rounded-3 bg-light mb-3">
+                            <div class="mb-3 bg-white p-2 rounded-3 border d-flex justify-content-between align-items-center">
+                                <span class="fw-bold small text-secondary">Bước 2: Trạng thái tại trụ</span>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <input type="radio" class="btn-check" name="radStatus" id="statusNormal" value="1" checked onchange="toggleStatusView(1)">
+                                    <label class="btn btn-outline-success fw-bold px-3" for="statusNormal">Bình Thường</label>
+                                    
+                                    <input type="radio" class="btn-check" name="radStatus" id="statusAbnormal" value="0" onchange="toggleStatusView(0)">
+                                    <label class="btn btn-outline-danger fw-bold px-3" for="statusAbnormal">Bất Thường</label>
+                                </div>
+                            </div>
+
+                            <div id="dynamicCatalogContainer" class="d-none">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary">Chọn Hạng mục chính (Cột 2)</label>
+                                    <select id="selectHangMucChinh" class="form-select form-select-sm" onchange="updateHangMucConDropdown()">
+                                        <option value="I">I./ Điều kiện các vùng xung quanh đường dây</option>
+                                        <option value="II" selected>II./ Các điều kiện của cấu trúc cột</option>
+                                        <option value="III">III./ Dây dẫn cách điện và dây chống sét</option>
+                                        <option value="IV">IV./ Hành lang an toàn và biển báo</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary">Chọn Hạng mục kiểm tra chi tiết (Cột 3)</label>
+                                    <select id="selectHangMucCon" class="form-select form-select-sm" onchange="autoFillErrorDetails()"></select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-danger">Tình trạng bất thường cụ thể</label>
+                                    <input type="text" id="txtMoTaLoi" class="form-control form-control-sm" placeholder="Nhập mô tả lỗi">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary">Biện pháp đề xuất & Thời gian xử lý</label>
+                                    <input type="text" id="txtBienPhap" class="form-control form-control-sm" placeholder="Biện pháp xử lý">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 bg-white p-2 rounded-3 border">
+                                <label id="cameraLabel" class="form-label small fw-bold text-danger"><i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp ảnh tổng thể Ngọn & Gốc (Tối thiểu 2 ảnh bắt buộc)</label>
+                                <input type="file" id="cameraInput" accept="image/*" capture="environment" class="form-control form-control-sm" onchange="handleCameraCapture(this)">
+                                <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+                            </div>
+
+                            <button class="btn btn-warning w-100 fw-bold py-3 fs-6" onclick="saveRecord()"><i class="fa-solid fa-circle-check me-1"></i> GHI NHẬN KẾT QUẢ VỊ TRÍ</button>
+                        </div>
+
+                        <div class="fw-bold small mb-2 d-flex justify-content-between"><span>SỐ VỊ TRÍ ĐÃ LƯU TRÊN MÁY:</span><span class="text-primary fs-5" id="localErrorCount">0</span></div>
+                        <div class="table-responsive" style="max-height: 130px;">
+                            <table class="table table-sm table-bordered bg-white" id="tableLocalErrors">
+                                <thead class="table-dark small"><tr><th>Trụ</th><th>Hạng Mục</th><th>Trạng Thái</th></tr></thead>
+                                <tbody style="font-size: 12px;"><tr><td colspan="3" class="text-center text-muted py-2">Chưa ghi nhận dữ liệu vị trí nào.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="submitTab">
+                    <div class="card card-field p-3">
+                        <div class="text-primary fw-bold mb-3 small"><i class="fa-solid fa-file-check me-1"></i> KÝ XÁX NHẬN & ĐỒNG BỘ</div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Nhận xét, kiến nghị của Nhóm kiểm tra</label>
+                            <textarea id="txtNhanXetChung" class="form-control" rows="2">Hoan tat</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary d-block">Ký tên trực tiếp bằng ngón tay vào ô trống dưới đây:</label>
+                            <div class="signature-container"><canvas id="signatureCanvas" class="signature-pad" height="160"></canvas></div>
+                            <button class="btn btn-sm btn-light border mt-2 px-3 fw-bold" onclick="clearSignature()"><i class="fa-solid fa-rotate-left text-danger me-1"></i>Xóa vẽ lại</button>
+                        </div>
+                        <button id="btnSync" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-3 shadow" onclick="syncDataToServer()"><i class="fa-solid fa-cloud-arrow-up me-2"></i>ĐỒNG BỘ LÊN SHEET</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // CẤU HÌNH LIÊN KẾT HỆ THỐNG ĐÃ CÓ CỦA ANH ĐẸP
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkd68P4u_YynTWmbPPY7jAHJtZPi0rn8",
+            authDomain: "quanlykiemtraluoidien.firebaseapp.com",
+            projectId: "quanlykiemtraluoidien",
+            storageBucket: "quanlykiemtraluoidien.firebasestorage.app",
+            messagingSenderId: "600153166284",
+            appId: "1:600153166284:web:8bff37e425b234474ccd69"
+        };
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec";
+
+        firebase.initializeApp(firebaseConfig);
+
+        const DANH_MUC_LOI = {
+            "I": [
+                { ma: "1a", text: "1a./ Cây trong hành lang vi phạm khoảng cách", moTa: "Cây xanh vi phạm khoảng cách an toàn hành lang", bienPhap: "Chặt tỉa cây bảo đảm hành lang tuyến", phanLoai: "XỬ LÝ KHI KIỂM TRA" },
+                { ma: "2a", text: "2a./ Hiện tượng sạt lở đất quanh chân trụ", moTa: "Đất có hiện tượng sạt lở nhẹ quanh móng trụ", bienPhap: "Theo dõi, đề xuất sửa chữa móng chân trụ", phanLoai: "TIẾP TỤC THEO DÕI" }
+            ],
+            "II": [
+                { ma: "3d", text: "3d./ Biển số trụ/tên tuyến mờ, bong tróc", moTa: "Biển số trụ không đúng thực tế, mờ, biển tên tuyến mờ", bienPhap: "Điều chỉnh lại số trụ, Sơn, Thay thế biển số trụ", phanLoai: "TIẾP TỤC THEO DÕI" },
+                { ma: "3n", text: "3n./ Dây hạ thế câu tạp, viễn thông mắc vào trụ", moTa: "Dây viễn thông gác trực tiếp lên thân trụ tháp", bienPhap: "Lập văn bản gửi điện lực khu vực phối hợp xử lý", phanLoai: "XỬ LÝ KHI KIỂM TRA" },
+                { ma: "4g", text: "4g./ Sơn trắng đỏ cảnh báo giao thông bị mờ", moTa: "Sơn trắng đỏ cảnh báo giao thông bị mờ", bienPhap: "Lập phương án SCTX tự thực hiện sơn lại màu trắng đỏ", phanLoai: "TIẾP TỤC THEO DÕI" }
+            ],
+            "III": [
+                { ma: "6c", text: "6c./ Cách điện bị bể, nứt vỡ bát sứ", moTa: "Bể vỡ bát sứ chuỗi cách điện pha", bienPhap: "Lập phương án thay sứ bể khi công tác cắt điện", phanLoai: "XỬ LÝ KHI CÁT ĐIỆN" }
+            ],
+            "IV": [
+                { ma: "8a", text: "8a./ Công trình phát sinh xây dựng trong hành lang", moTa: "Công trình xây dựng phát sinh sát hành lang bảo vệ", bienPhap: "Lập biên bản vi phạm hành lang an toàn lưới điện", phanLoai: "XỬ LÝ KHI KIỂM TRA" }
+            ]
+        };
+
+        let MASTER_DATA = { lines: [], towers: [] };
+        let CURRENT_INSPECTION = { idPhieu: '', maDuongDay: '', thoiGianBD: '', danhSachGhiNhan: [] };
+        let CURRENT_CAPTURED_PHOTOS = [];
+
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio); ctx.strokeStyle = "#0000ff"; ctx.lineWidth = 2.5;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        window.addEventListener('online', () => updateNetworkIndicator(true));
+        window.addEventListener('offline', () => updateNetworkIndicator(false));
+
+        function updateNetworkIndicator(isOnline) {
+            const badge = document.getElementById('networkStatus');
+            badge.className = isOnline ? "badge badge-online badge-net me-1" : "badge badge-offline badge-net me-1";
+            badge.innerHTML = isOnline ? '<i class="fa-solid fa-wifi me-1"></i>Online' : '<i class="fa-solid fa-wifi-slash me-1"></i>Offline';
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            if(!email || !pass) return alert("Vui lòng nhập tài khoản!");
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(userCredential => handleUserSession(userCredential.user))
+                .catch(error => alert("Lỗi: " + error.message));
+        }
+        function logout() { firebase.auth().signOut().then(() => location.reload()); }
+        function handleUserSession(user) {
+            if(user) {
+                document.getElementById('loginSection').classList.add('d-none');
+                document.getElementById('mainSection').classList.remove('d-none');
+                document.getElementById('btnLogout').classList.remove('d-none');
+                setTimeout(resizeCanvas, 300); fetchMasterData(); updateHangMucConDropdown();
+            }
+        }
+        firebase.auth().onAuthStateChanged(handleUserSession);
+
+        function fetchMasterData() {
+            if(!navigator.onLine) {
+                const cached = localStorage.getItem('VDC_MASTER_DATA');
+                if(cached) { MASTER_DATA = JSON.parse(cached); renderLinesDropdown(); }
+                return;
+            }
+            fetch(`${APPS_SCRIPT_URL}?action=getMasterData`).then(res => res.json()).then(data => {
+                MASTER_DATA = data; localStorage.setItem('VDC_MASTER_DATA', JSON.stringify(data)); renderLinesDropdown();
+            }).catch(err => console.error("Lỗi:", err));
+        }
+
+        function renderLinesDropdown() {
+            const select = document.getElementById('selectDuongDay');
+            select.innerHTML = '<option value="">-- Chọn tuyến dây kiểm tra --</option>';
+            if(MASTER_DATA.lines) {
+                MASTER_DATA.lines.forEach(line => { select.innerHTML += `<option value="${line.MaDuongDay}">${line.TenDuongDay}</option>`; });
+            }
+        }
+
+        function loadTowersForLine() {
+            const maDuongDay = document.getElementById('selectDuongDay').value;
+            const lineObj = MASTER_DATA.lines.find(l => l.MaDuongDay === maDuongDay);
+            document.getElementById('txtChungTru').value = lineObj ? lineObj.ChungTru_MacDinh : '';
+        }
+
+        function startInspection() {
+            const maDuongDay = document.getElementById('selectDuongDay').value;
+            const chiHuy = document.getElementById('txtChiHuy').value;
+            if(!maDuongDay || !chiHuy) return alert("Vui lòng điền đủ thông tin!");
+            const lineObj = MASTER_DATA.lines.find(l => l.MaDuongDay === maDuongDay);
+            
+            CURRENT_INSPECTION.idPhieu = `${Math.floor(100 + Math.random() * 900)}/2026/LINE-QLDD`;
+            CURRENT_INSPECTION.maDuongDay = maDuongDay;
+            CURRENT_INSPECTION.thoiGianBD = new Date().toISOString();
+            CURRENT_INSPECTION.danhSachGhiNhan = [];
+
+            document.getElementById('inspectingLine').innerText = lineObj.TenDuongDay;
+            renderTowerCheckboxes(maDuongDay);
+            document.getElementById('check-tab').click();
+        }
+
+        function renderTowerCheckboxes(maDuongDay) {
+            const container = document.getElementById('towerContainer'); container.innerHTML = "";
+            if(!MASTER_DATA.towers) return;
+            const towers = MASTER_DATA.towers.filter(t => String(t.MaDuongDay).trim() === String(maDuongDay).trim());
+            if(towers.length === 0) {
+                container.innerHTML = '<div class="text-danger small p-2">Không thấy mã trụ tháp.</div>'; return;
+            }
+            towers.sort((a,b) => Number(a.ThuTuSapXep) - Number(b.ThuTuSapXep));
+            towers.forEach(t => {
+                container.innerHTML += `
+                    <div class="col-4 col-sm-3">
+                        <input type="radio" name="rad_tower" value="${t.MaVitri}" data-name="${t.TenTruHienThi}" id="t_${t.MaVitri}" class="tower-btn-check">
+                        <label class="tower-label-box" for="t_${t.MaVitri}">${t.TenTruHienThi}</label>
+                    </div>`;
+            });
+        }
+
+        function updateHangMucConDropdown() {
+            const codeChinh = document.getElementById('selectHangMucChinh').value;
+            const selectCon = document.getElementById('selectHangMucCon');
+            selectCon.innerHTML = "";
+            DANH_MUC_LOI[codeChinh].forEach(item => {
+                selectCon.innerHTML += `<option value="${item.ma}">${item.text}</option>`;
+            });
+            autoFillErrorDetails();
+        }
+
+        function autoFillErrorDetails() {
+            const codeChinh = document.getElementById('selectHangMucChinh').value;
+            const codeCon = document.getElementById('selectHangMucCon').value;
+            const item = DANH_MUC_LOI[codeChinh].find(i => i.ma === codeCon);
+            if(item) {
+                document.getElementById('txtMoTaLoi').value = item.moTa;
+                document.getElementById('txtBienPhap').value = item.bienPhap;
+                document.getElementById('selectPhanLoai').value = item.phanLoai;
+            }
+        }
+
+        function toggleStatusView(isNormal) {
+            const catalogContainer = document.getElementById('dynamicCatalogContainer');
+            const labelCamera = document.getElementById('cameraLabel');
+            
+            if(isNormal === 1) {
+                catalogContainer.classList.add('d-none');
+                labelCamera.className = "form-label small fw-bold text-danger";
+                labelCamera.innerHTML = '<i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp ảnh tổng thể Ngọn & Gốc (Tối thiểu 2 ảnh bắt buộc)';
+            } else {
+                catalogContainer.classList.remove('d-none');
+                labelCamera.className = "form-label small fw-bold text-danger";
+                labelCamera.innerHTML = '<i class="fa-solid fa-camera me-1"></i> Bước 3: Chụp hình chi tiết biến cố lỗi tồn tại (Tối thiểu 1 ảnh)';
+                updateHangMucConDropdown();
+            }
+            CURRENT_CAPTURED_PHOTOS = [];
+            document.getElementById('photoPreviewGrid').innerHTML = "";
+        }
+
+        // THUẬT TOÁN ĐẶT TÊN FILE ẢNH THEO MÃ TRỤ + TIMESTAMP
+        function handleCameraCapture(input) {
+            if (input.files && input.files[0]) {
+                const radTower = document.querySelector('input[name="rad_tower"]:checked');
+                if (!radTower) {
+                    alert("LỖI BẮT BUỘC: Anh phải chọn vị trí Trụ điện ở Bước 1 trước khi bấm chụp ảnh!");
+                    input.value = ""; return;
+                }
+
+                const maViTriTru = radTower.value; 
+                const now = new Date();
+                const timestamp = now.getFullYear() + 
+                                  String(now.getMonth() + 1).padStart(2, '0') + 
+                                  String(now.getDate()).padStart(2, '0') + "_" + 
+                                  String(now.getHours()).padStart(2, '0') + 
+                                  String(now.getMinutes()).padStart(2, '0') + 
+                                  String(now.getSeconds()).padStart(2, '0');
+
+                const dinhDangTenFile = `${maViTriTru}_${timestamp}.jpg`;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = function() {
+                        const canvasImg = document.createElement('canvas'); const ctxImg = canvasImg.getContext('2d');
+                        const max_width = 800; const scale = max_width / img.width;
+                        canvasImg.width = max_width; canvasImg.height = img.height * scale;
+                        ctxImg.drawImage(img, 0, 0, canvasImg.width, canvasImg.height);
+                        
+                        const compressedBase64 = canvasImg.toDataURL("image/jpeg", 0.75);
+                        CURRENT_CAPTURED_PHOTOS.push({
+                            tenFile: dinhDangTenFile,
+                            base64Data: compressedBase64
+                        });
+                        renderPhotoPreviewGrid();
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function renderPhotoPreviewGrid() {
+            const grid = document.getElementById('photoPreviewGrid'); grid.innerHTML = "";
+            CURRENT_CAPTURED_PHOTOS.forEach((pic, index) => {
+                grid.innerHTML += `
+                    <div class="photo-preview-item" title="${pic.tenFile}">
+                        <img src="${pic.base64Data}">
+                        <button class="photo-delete-btn" onclick="deletePhoto(${index})">×</button>
+                        <span class="position-absolute bottom-0 start-0 bg-dark text-white p-1" style="font-size:7px; opacity:0.8; max-width:100%; white-space:nowrap; overflow:hidden;">${pic.tenFile}</span>
+                    </div>`;
+            });
+        }
+        function deletePhoto(idx) { CURRENT_CAPTURED_PHOTOS.splice(idx, 1); renderPhotoPreviewGrid(); }
+
+        function saveRecord() {
+            const radTower = document.querySelector('input[name="rad_tower"]:checked');
+            if(!radTower) return alert("LỖI: Chưa chọn vị trí Trụ điện kiểm tra!");
+
+            const isNormal = parseInt(document.querySelector('input[name="radStatus"]:checked').value);
+            
+            if(isNormal === 1 && CURRENT_CAPTURED_PHOTOS.length < 2) {
+                return alert("LỖI BẮT BUỘC: Vị trí Bình thường yêu cầu chụp đủ ít nhất 2 tấm hình (Gốc & Ngọn) để lưu làm bằng chứng!");
+            }
+            if(isNormal === 0 && CURRENT_CAPTURED_PHOTOS.length < 1) {
+                return alert("LỖI BẮT BUỘC: Khai báo Bất thường yêu cầu chụp ít nhất 1 hình ảnh chi tiết tồn tại!");
+            }
+
+            const codeCon = isNormal === 1 ? "OK" : document.getElementById('selectHangMucCon').value;
+            const moTa = isNormal === 1 ? "Vận hành bình thường" : document.getElementById('txtMoTaLoi').value;
+            const bienPhap = isNormal === 1 ? "Tiếp tục vận hành thường xuyên" : document.getElementById('txtBienPhap').value;
+            const phanLoai = isNormal === 1 ? "THEO DÕI" : document.getElementById('selectPhanLoai').value;
+
+            CURRENT_INSPECTION.danhSachGhiNhan.push({
+                maViTri: radTower.value,
+                tenTruHienThi: radTower.getAttribute('data-name'),
+                maHangMucCon: codeCon,
+                tinhTrang: isNormal, 
+                moTaLoi: moTa,
+                bienPhapXL: bienPhap,
+                phanLoai: phanLoai,
+                hinhAnhMang: [...CURRENT_CAPTURED_PHOTOS]
+            });
+
+            radTower.checked = false;
+            CURRENT_CAPTURED_PHOTOS = [];
+            document.getElementById('photoPreviewGrid').innerHTML = "";
+            document.getElementById('cameraInput').value = "";
+            
+            alert("Đã ghi nhận dữ liệu vị trí thành công!");
+            updateLocalTable();
+        }
+
+        function updateLocalTable() {
+            const tbody = document.querySelector('#tableLocalErrors tbody');
+            document.getElementById('localErrorCount').innerText = CURRENT_INSPECTION.danhSachGhiNhan.length;
+            if(CURRENT_INSPECTION.danhSachGhiNhan.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-2">Chưa ghi nhận dữ liệu vị trí nào.</td></tr>'; return;
+            }
+            tbody.innerHTML = "";
+            CURRENT_INSPECTION.danhSachGhiNhan.forEach(rec => {
+                const statusBadge = rec.tinhTrang === 1 ? '<span class="badge bg-success">Bình thường</span>' : '<span class="badge bg-danger">Bất thường</span>';
+                tbody.innerHTML += `<tr><td class="fw-bold">${rec.tenTruHienThi}</td><td>${rec.maHangMucCon}</td><td>${statusBadge}</td></tr>`;
+            });
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const p = getCanvasPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); });
+        canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const p = getCanvasPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
+        canvas.addEventListener('touchend', () => isDrawing = false);
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        function syncDataToServer() {
+            if(CURRENT_INSPECTION.danhSachGhiNhan.length === 0) return alert("Chưa ghi nhận vị trí trụ nào!");
+            if(!navigator.onLine) return alert("Thiết bị mất mạng Internet. Không thể đồng bộ!");
+
+            document.getElementById('btnSync').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nén và đồng bộ dữ liệu...';
+            document.getElementById('btnSync').disabled = true;
+
+            const payload = {
+                action: "syncPhieu",
+                idPhieu: CURRENT_INSPECTION.idPhieu,
+                maDuongDay: CURRENT_INSPECTION.maDuongDay,
+                thoiGianBD: CURRENT_INSPECTION.thoiGianBD,
+                thoiGianKT: new Date().toISOString(),
+                chiHuyTT: document.getElementById('txtChiHuy').value,
+                congNhan: document.getElementById('txtCongNhan').value,
+                nhanXetChung: document.getElementById('txtNhanXetChung').value,
+                chuKyNhom: canvas.toDataURL("image/png"),
+                danhSachGhiNhan: CURRENT_INSPECTION.danhSachGhiNhan
+            };
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST", mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                alert("ĐỒNG BỘ HOÀT TẤT VỀ GOOGLE SHEETS!"); location.reload();
+            }).catch(err => {
+                alert("Lỗi mạng: " + err); document.getElementById('btnSync').innerText = "ĐỒNG BỘ LÊN SHEET";
+                document.getElementById('btnSync').disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
