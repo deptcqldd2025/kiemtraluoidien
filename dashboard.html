@@ -2,64 +2,165 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Tồn Tại</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Bất Thường Chưa Xử Lý</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .thumb-img { width: 60px; height: 60px; object-fit: cover; cursor: pointer; border-radius: 4px; }
-        #fullImg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        body { background-color: #f8f9fa; font-family: Arial, sans-serif; font-size: 13px; }
+        .dashboard-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 20px; }
+        .table-header th { background-color: #0d6efd !important; color: white !important; text-align: center; vertical-align: middle; white-space: nowrap; }
+        .table-bordered td { vertical-align: middle; }
+        .thumb-img { width: 50px; height: 50px; object-fit: cover; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; margin: 2px; transition: transform 0.2s; }
+        .thumb-img:hover { transform: scale(1.1); border-color: #0d6efd; }
+        
+        /* Lightbox (Xem ảnh lớn) */
+        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .btn-close-lightbox { position: absolute; top: 20px; right: 30px; font-size: 30px; color: white; cursor: pointer; border: none; background: transparent; }
     </style>
 </head>
-<body class="p-3">
+<body>
 
-<div class="container">
-    <h3>Bảng Tổng Hợp Tồn Tại</h3>
-    <select id="lineFilter" class="form-select mb-3" onchange="filterData()">
-        <option value="all">Tất cả đường dây</option>
-    </select>
-    
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr><th>Trụ</th><th>Hạng Mục</th><th>Ghi Chú</th><th>Hình Ảnh</th></tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+<div class="container-fluid py-3 px-4">
+    <div class="dashboard-container">
+        <h3 class="text-center text-danger fw-bold mb-4">DANH SÁCH BẤT THƯỜNG CHƯA XỬ LÝ</h3>
+        
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="fw-bold small text-muted">Lọc theo đường dây (Mã tuyến):</label>
+                <select id="lineFilter" class="form-select form-select-sm" onchange="filterData()">
+                    <option value="all">-- TẤT CẢ ĐƯỜNG DÂY --</option>
+                </select>
+            </div>
+            <div class="col-md-8 text-end d-flex align-items-end justify-content-end">
+                <span class="badge bg-danger fs-6">Tổng số tồn tại: <span id="total-count">0</span></span>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-header">
+                    <tr>
+                        <th style="width: 5%;">VỊ TRÍ</th>
+                        <th style="width: 10%;">ĐƯỜNG DÂY</th>
+                        <th style="width: 15%;">HẠNG MỤC<br>CHÍNH</th>
+                        <th style="width: 20%;">HẠNG MỤC<br>KIỂM TRA</th>
+                        <th style="width: 15%;">TÌNH TRẠNG</th>
+                        <th style="width: 10%;">BIỆN PHÁP ĐỀ XUẤT<br>THỜI GIAN XỬ LÝ</th>
+                        <th style="width: 7%;">GHI CHÚ</th>
+                        <th style="width: 8%;">PHÂN LOẠI<br>BẤT THƯỜNG</th>
+                        <th style="width: 10%;">HÌNH ẢNH</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="9" class="text-center text-muted py-4">Đang tải dữ liệu từ Google Sheets...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<div id="fullImg" onclick="this.style.display='none'">
-    <img id="imgView" style="max-width:90%; max-height:90%;">
+<div id="lightbox" onclick="closeImg()">
+    <button class="btn-close-lightbox" onclick="closeImg()">&times;</button>
+    <img id="imgView" src="" onclick="event.stopPropagation()">
 </div>
 
 <script>
+// Link API của anh đã được thiết lập đúng param action
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwF5pmli_jce4D75Jt0wNSg9j7YmLgH5XIBGJQ0_AsSnsot-iP45IqzBDmecvJb0nAFlA/exec?action=getDashboardData";
 let allData = [];
 
-fetch(SCRIPT_URL).then(res => res.json()).then(data => {
-    allData = data;
-    renderTable(data);
-    let lines = [...new Set(data.map(item => item.MaViTri.split('_')[0]))]; // Giả sử MaViTri chứa ID đường dây
-    lines.forEach(l => document.getElementById('lineFilter').innerHTML += `<option value="${l}">${l}</option>`);
-});
+// Tải dữ liệu ngay khi mở trang
+fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+        // Chỉ lọc lấy các dòng báo "Có tồn tại"
+        allData = data.filter(d => d.KetQua === "Có tồn tại");
+        
+        // Trích xuất danh sách các Mã đường dây (Tách từ IdPhieu sau dấu _)
+        let lines = new Set();
+        allData.forEach(d => {
+            let parts = d.IdPhieu.split('_');
+            if(parts.length > 1) lines.add(parts[1]);
+        });
+        
+        // Đổ vào filter
+        const lineFilter = document.getElementById('lineFilter');
+        lines.forEach(l => {
+            lineFilter.innerHTML += `<option value="${l}">${l}</option>`;
+        });
+        
+        renderTable(allData);
+    })
+    .catch(err => {
+        document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Lỗi kết nối máy chủ Google: ${err}</td></tr>`;
+    });
 
-function renderTable(data) {
+function renderTable(dataToRender) {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = data.filter(d => d.KetQua === "Có tồn tại").map(d => `
-        <tr>
-            <td>${d.MaViTri}</td>
-            <td>${d.HangMucChinh}</td>
-            <td>${d.GhiChu}</td>
-            <td><img src="${d.LinkHinhAnh.split('\n')[0]}" class="thumb-img" onclick="viewImg(this.src)"></td>
-        </tr>
-    `).join('');
+    document.getElementById('total-count').innerText = dataToRender.length;
+    
+    if (dataToRender.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-success py-4 fw-bold">Tuyệt vời! Không có lỗi tồn tại nào.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = dataToRender.map(d => {
+        // Tách lấy mã đường dây từ IdPhieu
+        let maDuongDay = d.IdPhieu.split('_')[1] || "Không xác định";
+        
+        // Xử lý chuỗi link hình ảnh (Tách thành mảng theo dấu xuống dòng)
+        let imgsHtml = "";
+        if (d.LinkHinhAnh) {
+            let links = d.LinkHinhAnh.split('\n');
+            links.forEach(link => {
+                let cleanLink = link.trim();
+                if (cleanLink && cleanLink.startsWith('http')) {
+                    // Cắt lấy ID của Google Drive để lấy thumbnail cho nhẹ
+                    let idMatch = cleanLink.match(/[-\w]{25,}/);
+                    if (idMatch && idMatch[0]) {
+                        let thumbUrl = "https://drive.google.com/thumbnail?id=" + idMatch[0] + "&sz=w100";
+                        imgsHtml += `<img src="${thumbUrl}" data-full="${cleanLink}" class="thumb-img" onclick="viewImg('${cleanLink}')" title="Bấm để xem ảnh lớn">`;
+                    }
+                }
+            });
+        }
+
+        return `
+            <tr>
+                <td class="text-center fw-bold">${d.MaViTri}</td>
+                <td class="text-center">${maDuongDay}</td>
+                <td>${d.HangMucChinh}</td>
+                <td>${d.HangMucKiemTra}</td>
+                <td class="text-danger">${d.GhiChu}</td>
+                <td></td> <td></td> <td class="text-center text-muted" style="font-size: 11px;">TIẾP TỤC<br>THEO DÕI</td>
+                <td class="text-center">${imgsHtml}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function filterData() {
     let val = document.getElementById('lineFilter').value;
-    renderTable(val === 'all' ? allData : allData.filter(d => d.MaViTri.startsWith(val)));
+    if (val === 'all') {
+        renderTable(allData);
+    } else {
+        let filtered = allData.filter(d => {
+            let parts = d.IdPhieu.split('_');
+            return parts.length > 1 && parts[1] === val;
+        });
+        renderTable(filtered);
+    }
 }
 
-function viewImg(src) {
-    document.getElementById('imgView').src = src;
-    document.getElementById('fullImg').style.display = 'flex';
+function viewImg(fullSrc) {
+    document.getElementById('imgView').src = fullSrc;
+    document.getElementById('lightbox').style.display = 'flex';
+}
+
+function closeImg() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.getElementById('imgView').src = "";
 }
 </script>
 </body>
