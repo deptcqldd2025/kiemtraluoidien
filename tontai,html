@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tồn tại Lưới điện - v1.1.HEPC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .thumbnail {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            transition: transform 0.2s;
+        }
+        .thumbnail:hover {
+            transform: scale(1.1);
+        }
+        .upload-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2 class="text-center">Tồn Tại Đường Dây Tính Đến 2026 (v1.1.HEPC)</h2>
+
+    <table id="defectTable">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tên Đường Dây</th>
+                <th>Tồn Tại</th>
+                <th>Loại</th>
+                <th>SCL 2026</th>
+                <th>KH SCL 2027</th>
+                <th>KH Xử Lý</th>
+                <th>Hình 1 (Cột H)</th>
+                <th>Hình 2 (Cột I)</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <script>
+        // Trích xuất dữ liệu thực tế từ file, loại bỏ các dòng không có tồn tại
+        const data = [
+            { stt: "1", tenDuongDay: "PHÚ LÂM (175) - PHÚ ĐỊNH (171)", tonTai: "Trụ 18 nhâm sét.", loai: "Trụ", scl2026: "SCL 2026", khScl2027: "", khXuLy: "" },
+            { stt: "", tenDuongDay: "", tonTai: "Biển nguy hiểm bị mờ toàn tuyến.", loai: "Biển cảnh báo", scl2026: "", khScl2027: "", khXuLy: "SCTX 2026" },
+            { stt: "", tenDuongDay: "", tonTai: "Sửa chữa móng trụ 6, 30", loai: "Móng", scl2026: "", khScl2027: "SCL 2027", khXuLy: "" },
+            { stt: "4", tenDuongDay: "PHÚ LÂM (179) - UDICO HỰU THẠNH (171)", tonTai: "Trụ bị nhâm sét: ĐN1, ĐN2, T1, T2...", loai: "Trụ", scl2026: "SCL 2026(đang thực hiện)", khScl2027: "", khXuLy: "" },
+            { stt: "8", tenDuongDay: "CẦU BÔNG (178) - ĐÔNG NAM (172) - GÒ ĐẬU (171)", tonTai: "Biển số, biển tên tuyến, biển nguy hiểm bị mờ, rỉ sét trụ 1-9", loai: "Biển Báo", scl2026: "", khScl2027: "", khXuLy: "SCTX 2026" },
+            { stt: "11", tenDuongDay: "BÌNH TÂN (171) - BÀ QUẸO (172)", tonTai: "Trụ bị rỉ sét các vị trí: T1,3,12,16,20,30,32,34.", loai: "Trụ / xà phần gốc", scl2026: "", khScl2027: "", khXuLy: "" },
+            { stt: "", tenDuongDay: "", tonTai: "Các vị trí trụ bể 1 bát sứ: T6, T25, T29.", loai: "Sứ / phụ kiện", scl2026: "", khScl2027: "", khXuLy: "Xử lý trong ngày cắt điện" },
+            { stt: "14", tenDuongDay: "PHÚ LÂM (171) - POUYUEN (171) - TÂN BÌNH 2 (172)", tonTai: "Móng trụ 02 bị sụt lún.", loai: "Móng", scl2026: "", khScl2027: "SCL 2027", khXuLy: "" }
+        ];
+
+        const tbody = document.getElementById('tableBody');
+
+        function renderTable() {
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center">${row.stt}</td>
+                    <td><b>${row.tenDuongDay}</b></td>
+                    <td>${row.tonTai}</td>
+                    <td class="text-center">${row.loai}</td>
+                    <td class="text-center">${row.scl2026}</td>
+                    <td class="text-center">${row.khScl2027}</td>
+                    <td class="text-center">${row.khXuLy}</td>
+                    <td class="text-center">
+                        <div class="image-container" id="container_H_${index}">
+                            ${getUploadHTML(index, 'H')}
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="image-container" id="container_I_${index}">
+                            ${getUploadHTML(index, 'I')}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getUploadHTML(rowIndex, colName) {
+            const inputId = `file_${colName}_${rowIndex}`;
+            const containerId = `container_${colName}_${rowIndex}`;
+            return `
+                <input type="file" id="${inputId}" accept="image/*" onchange="handleImageUpload(event, '${containerId}', '${inputId}')">
+                <button class="upload-btn" onclick="document.getElementById('${inputId}').click()">Chọn ảnh</button>
+            `;
+        }
+
+        function handleImageUpload(event, containerId, inputId) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const imageUrl = URL.createObjectURL(file);
+            const container = document.getElementById(containerId);
+            const colName = inputId.split('_')[1];
+            const rowIndex = inputId.split('_')[2];
+
+            container.innerHTML = `
+                <a href="${imageUrl}" target="_blank" title="Bấm để xem ảnh kích thước đầy đủ">
+                    <img src="${imageUrl}" class="thumbnail" alt="Hình ảnh tồn tại">
+                </a>
+                <button class="upload-btn" style="background-color: #f44336; margin-top: 5px;" 
+                        onclick="resetUpload('${containerId}', '${colName}', '${rowIndex}')">
+                    Xóa ảnh
+                </button>
+            `;
+        }
+
+        function resetUpload(containerId, colName, rowIndex) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = getUploadHTML(rowIndex, colName);
+        }
+
+        window.onload = renderTable;
+    </script>
+
+</body>
+</html>
